@@ -25,23 +25,35 @@ public:
 	static constexpr size_t buffer_size = BufferSize;
 	using value_type = T;
 	using allocator_type = Allocator;
-	using size_type = std::allocator_traits<allocator_type>::size_type;
-	using difference_type = std::allocator_traits<allocator_type>::difference_type;
-	using pointer = std::allocator_traits<allocator_type>::pointer;
-	using const_pointer = std::allocator_traits<allocator_type>::const_pointer;
+	using size_type = typename std::allocator_traits<allocator_type>::size_type;
+	using difference_type = typename std::allocator_traits<allocator_type>::difference_type;
+	using pointer = typename std::allocator_traits<allocator_type>::pointer;
+	using const_pointer = typename std::allocator_traits<allocator_type>::const_pointer;
+
+	constexpr RingBuffer() = default;
+	constexpr RingBuffer(const RingBuffer&) = default;
+	template <size_t OtherBufferSize>
+	explicit RingBuffer(RingBuffer<T, OtherBufferSize>&& other) 
+	{
+		auto temp = other.dequeue();
+		enqueue(temp.cend() - std::min(BufferSize, OtherBufferSize), temp.cend());
+	}
+
+	template <size_t OtherBufferSize>
+	explicit RingBuffer(const RingBuffer<T, OtherBufferSize>& other) : RingBuffer(std::move(RingBuffer(other))) {}
 
 	constexpr bool empty() { return !contains_content; }
 	constexpr size_type content_size() { return contains_content ? (tail + buffer_size - head) % buffer_size : 0; }
 
 	template <class InputIt>
-	typename std::enable_if_t<std::is_base_of_v<std::input_iterator_tag, std::iterator_traits<InputIt>::iterator_category>, void>
+	typename std::enable_if_t<std::is_base_of<std::input_iterator_tag, typename std::iterator_traits<InputIt>::iterator_category>::value, void>
 		enqueue(InputIt begin, InputIt end)
 	{
 		enqueue(begin, std::distance(begin, end));
 	}
 
 	template <class InputIt>
-	typename std::enable_if_t<std::is_base_of_v<std::input_iterator_tag, std::iterator_traits<InputIt>::iterator_category>, void>
+	typename std::enable_if_t<std::is_base_of<std::input_iterator_tag, typename std::iterator_traits<InputIt>::iterator_category>::value, void>
 		enqueue(InputIt begin, size_t size) 
 	{
 		const size_type part1 = std::min(size, buffer_size - tail);
@@ -71,6 +83,8 @@ public:
 		contains_content = contains_content || size;
 	}
 
+	std::vector<value_type> dequeue() { return dequeue(content_size()); }
+
 	std::vector<value_type> dequeue(size_type elem_count)
 	{
 		const size_type size = std::min(content_size(), elem_count);
@@ -85,13 +99,7 @@ public:
 		const_pointer middle = begin + part1;
 		const_pointer end = buffer + part2;
 
-		IFCONSTEXPR(std::is_trivially_copyable_v<value_type> &&
-			(std::is_same_v<InputIt, pointer>
-				|| std::is_same_v<InputIt, const_pointer>
-				|| std::is_same_v<InputIt, std::vector<value_type>::iterator>
-				|| std::is_same_v<InputIt, std::array<value_type, buffer_size>::iterator>
-				|| std::is_same_v<InputIt, decltype(std::begin(std::declval<std::valarray<value_type>>()))>
-				))
+		IFCONSTEXPR(std::is_trivially_copyable_v<value_type>)
 		{
 			result.resize(size);
 			std::memcpy(result.data(), begin, part1);
