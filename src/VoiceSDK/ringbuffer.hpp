@@ -1,5 +1,5 @@
-#ifndef __H_VOICE_SDK_QUEUE_HPP
-#define __H_VOICE_SDK_QUEUE_HPP __TIMESTAMP__
+#ifndef __H_VOICE_SDK_RINGBUFFER_HPP
+#define __H_VOICE_SDK_RINGBUFFER_HPP __TIMESTAMP__
 
 #include "definitions.hpp"
 #include <type_traits>
@@ -15,7 +15,7 @@
 namespace VoiceSDK{
 
 template <typename T, size_t BufferSize, class Allocator = std::allocator<T>>
-class Queue {
+class RingBuffer {
 private:
 	T buffer[BufferSize];
 	size_t head = 0;
