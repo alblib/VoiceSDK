@@ -17,7 +17,7 @@ namespace VoiceSDK{
 template <typename T, size_t BufferSize, class Allocator = std::allocator<T>>
 class RingBuffer {
 private:
-	T buffer[BufferSize];
+	std::array<T, BufferSize> buffer;
 	size_t head = 0;
 	size_t tail = 0;
 	bool contains_content = false;
@@ -78,16 +78,16 @@ public:
 				|| std::is_same_v<InputIt, decltype(std::begin(std::declval<std::valarray<value_type>>()))>
 				))
 		{
-			std::memcpy(buffer + tail, &*(begin), part1 * sizeof(value_type));
-			std::memcpy(buffer, &*(begin) + part1, part2 * sizeof(value_type));
+			std::memcpy(buffer.data() + tail, &*(begin), part1 * sizeof(value_type));
+			std::memcpy(buffer.data(), &*(begin)+part1, part2 * sizeof(value_type));
 		}
 		else // IFCONSTEXPR(std::is_base_of_v<std::random_access_iterator_tag, std::iterator_traits<InputIt>::iterator_category>)
 		{
 			InputIt middle = begin, end = begin;
 			std::advance(middle, part1);
 			std::advance(end, size);
-			std::copy(begin, middle, buffer + tail);
-			std::copy(middle, end, buffer);
+			std::copy(begin, middle, buffer.data() + tail);
+			std::copy(middle, end, buffer.data());
 		}
 
 		tail = (tail + size) % buffer_size;
@@ -106,20 +106,20 @@ public:
 		const size_type part1 = std::min(size, buffer_size - head);
 		const size_type part2 = size - part1;
 
-		const_pointer begin = buffer + head;
+		const_pointer begin = buffer.data() + head;
 		const_pointer middle = begin + part1;
-		const_pointer end = buffer + part2;
+		const_pointer end = buffer.data() + part2;
 
 		IFCONSTEXPR(std::is_trivially_copyable_v<value_type>)
 		{
 			result.resize(size);
-			std::memcpy(result.data(), begin, part1);
-			std::memcpy(result.data() + part1, buffer, part2);
+			std::memcpy(result.data(), begin, part1 * sizeof(value_type));
+			std::memcpy(result.data() + part1, buffer.data(), part2 * sizeof(value_type));
 		}
 		else
 		{
 			result.insert(result.end(), begin, middle);
-			result.insert(result.end(), buffer, end);
+			result.insert(result.end(), buffer.data(), end);
 		}
 
 		head = (head + size) % buffer_size;
@@ -132,7 +132,7 @@ public:
 		contains_content = false;
 		head = 0;
 		tail = 0;
-		std::fill(buffer, buffer + buffer_size, T());
+		buffer.fill(T());
 	}
 };
 
