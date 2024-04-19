@@ -61,6 +61,14 @@ public:
 	constexpr bool empty() { return !contains_content; }
 	constexpr size_type content_size() { return contains_content ? (tail + buffer_size - head) % buffer_size : 0; }
 
+	/*!
+	 * @brief Enqueues the given byte array into the ring buffer by converting the byte array into the buffer's data type.
+	 */
+	void enqueue(const void* begin, size_t size)
+	{
+		enqueue((const_pointer)begin, size);
+	}
+
 	template <class InputIt>
 	typename std::enable_if_t<std::is_base_of<std::input_iterator_tag, typename std::iterator_traits<InputIt>::iterator_category>::value, void>
 		enqueue(InputIt begin, InputIt end)
@@ -105,6 +113,10 @@ public:
 		contains_content = contains_content || size;
 	}
 
+	// casts and enqueue
+
+	#pragma region dequeue
+
 	std::vector<value_type> dequeue() { return dequeue(content_size()); }
 
 	std::vector<value_type> dequeue(size_type elem_count)
@@ -137,6 +149,9 @@ public:
 		contains_content = (size == elem_count);
 		return result;
 	}
+
+	#pragma endregion
+
 };
 
 }
