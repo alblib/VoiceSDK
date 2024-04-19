@@ -1,6 +1,7 @@
 #include <VoiceSDK/ringbuffer.hpp>
 #include <stdexcept>
 #include <iostream>
+#include <exception>
 
 void test_RingBuffer() {
     VoiceSDK::RingBuffer<float, 128> rb;
