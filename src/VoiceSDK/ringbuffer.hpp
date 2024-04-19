@@ -11,8 +11,61 @@
 #include <utility>
 #include <cstring>
 #include <iterator>
+#include <string>
 
 namespace VoiceSDK{
+
+#pragma region is_contiguous_iterator
+
+template <class Iter, typename = void>
+struct is_contiguous_iterator : std::false_type {};
+
+template <class Ptr>
+struct is_contiguous_iterator<Ptr, typename std::enable_if<std::is_pointer<Ptr>::value>::type> : std::true_type {};
+
+#if _CPP_VER >= 202002L
+template <class Iter>
+struct is_contiguous_iterator<Iter, std::enable_if_t<std::contiguous_iterator<Iter>>> : std::true_type {};
+#else
+
+template <class Iter>
+struct is_contiguous_iterator<Iter, typename std::enable_if<std::is_same<Iter, typename std::vector<typename std::iterator_traits<Iter>::value_type>::iterator>::value>::type> : std::true_type {};
+template <class Iter>
+struct is_contiguous_iterator<Iter, typename std::enable_if<std::is_same<Iter, typename std::array<typename std::iterator_traits<Iter>::value_type, 10>::iterator>::value>::type> : std::true_type {};
+template <class Iter>
+struct is_contiguous_iterator<Iter, typename std::enable_if<std::is_same<Iter, decltype(std::begin(std::declval<std::valarray<typename std::iterator_traits<Iter>::value_type>>()))>::value>::type> : std::true_type {};
+template <class Iter>
+struct is_contiguous_iterator<Iter, typename std::enable_if<std::is_same<Iter, typename std::basic_string<typename std::iterator_traits<Iter>::value_type>::iterator>::value>::type> : std::true_type {};
+
+#if _CPP_VER >= 201703L
+template <class Iter>
+struct is_contiguous_iterator<Iter, typename std::enable_if<std::is_same<Iter, typename std::basic_string_view<typename std::iterator_traits<Iter>::value_type>::iterator>::value>::type> : std::true_type {};
+#endif
+
+#endif
+
+template <class Iter>
+inline constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<Iter>::value;
+
+#pragma endregion
+
+
+#pragma region is_input_iterator
+
+
+#if _CPP_VER >= 202002L
+template <class Iter>
+struct is_input_iterator : std::integral_constant<bool, std::input_iterator<Iter>> {};
+#else
+template <class Iter>
+struct is_input_iterator : std::integral_constant<bool, std::is_base_of<std::input_iterator_tag, typename std::iterator_traits<Iter>::iterator_category>::value> {};
+#endif
+
+template <class Iter>
+inline constexpr bool is_input_iterator_v = is_input_iterator<Iter>::value;
+
+#pragma endregion
+
 
 template <typename T, size_t BufferSize, class Allocator = std::allocator<T>>
 class RingBuffer {
@@ -30,7 +83,18 @@ public:
 	using pointer = typename std::allocator_traits<allocator_type>::pointer;
 	using const_pointer = typename std::allocator_traits<allocator_type>::const_pointer;
 
-	constexpr RingBuffer() = default;
+	void clear()
+	{
+		contains_content = false;
+		head = 0;
+		tail = 0;
+		buffer.fill(value_type());
+	}
+
+	RingBuffer() 
+	{
+		clear();
+	}
 	constexpr RingBuffer(const RingBuffer&) = default;
 	template <size_t OtherBufferSize>
 	explicit RingBuffer(RingBuffer<T, OtherBufferSize>&& other) 
@@ -50,16 +114,24 @@ public:
 	constexpr bool empty() { return !contains_content; }
 	constexpr size_type content_size() { return contains_content ? (tail + buffer_size - head) % buffer_size : 0; }
 
+	/*!
+	 * @brief Enqueues the given byte array into the ring buffer by converting the byte array into the buffer's data type.
+	 */
+	void enqueue(const void* begin, size_t size)
+	{
+		enqueue((const_pointer)begin, size);
+	}
+
 	template <class InputIt>
-	typename std::enable_if_t<std::is_base_of<std::input_iterator_tag, typename std::iterator_traits<InputIt>::iterator_category>::value, void>
+	typename std::enable_if<is_input_iterator_v<InputIt>>::type
 		enqueue(InputIt begin, InputIt end)
 	{
 		enqueue(begin, std::distance(begin, end));
 	}
 
 	template <class InputIt>
-	typename std::enable_if_t<std::is_base_of<std::input_iterator_tag, typename std::iterator_traits<InputIt>::iterator_category>::value, void>
-		enqueue(InputIt begin, size_t size) 
+	typename std::enable_if<is_input_iterator_v<InputIt>>::type
+		enqueue(InputIt begin, size_t size)
 	{
 		if (size > buffer_size)
 		{
@@ -70,18 +142,13 @@ public:
 		const size_type part1 = std::min(size, buffer_size - tail);
 		const size_type part2 = size - part1;
 
-		IFCONSTEXPR(std::is_trivially_copyable_v<value_type> &&
-			(std::is_same_v<InputIt, pointer>
-				|| std::is_same_v<InputIt, const_pointer>
-				|| std::is_same_v<InputIt, typename std::vector<value_type>::iterator>
-				|| std::is_same_v<InputIt, typename std::array<value_type, buffer_size>::iterator>
-				|| std::is_same_v<InputIt, decltype(std::begin(std::declval<std::valarray<value_type>>()))>
-				))
+		IFCONSTEXPR(std::is_trivially_copyable<value_type>::value &&
+			is_contiguous_iterator_v<InputIt>)
 		{
 			std::memcpy(buffer.data() + tail, &*(begin), part1 * sizeof(value_type));
 			std::memcpy(buffer.data(), &*(begin)+part1, part2 * sizeof(value_type));
 		}
-		else // IFCONSTEXPR(std::is_base_of_v<std::random_access_iterator_tag, std::iterator_traits<InputIt>::iterator_category>)
+		else
 		{
 			InputIt middle = begin, end = begin;
 			std::advance(middle, part1);
@@ -93,6 +160,10 @@ public:
 		tail = (tail + size) % buffer_size;
 		contains_content = contains_content || size;
 	}
+
+	// casts and enqueue
+
+	#pragma region dequeue
 
 	std::vector<value_type> dequeue() { return dequeue(content_size()); }
 
@@ -110,7 +181,7 @@ public:
 		const_pointer middle = begin + part1;
 		const_pointer end = buffer.data() + part2;
 
-		IFCONSTEXPR(std::is_trivially_copyable_v<value_type>)
+		IFCONSTEXPR(std::is_trivially_copyable<value_type>::value)
 		{
 			result.resize(size);
 			std::memcpy(result.data(), begin, part1 * sizeof(value_type));
@@ -127,13 +198,8 @@ public:
 		return result;
 	}
 
-	void clear()
-	{
-		contains_content = false;
-		head = 0;
-		tail = 0;
-		buffer.fill(T());
-	}
+	#pragma endregion
+
 };
 
 }
