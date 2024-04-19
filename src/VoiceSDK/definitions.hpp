@@ -8,9 +8,9 @@
 #endif
 
 #ifndef VoiceSDK_EXPORTS
-# if (defined _WIN32 || defined WINCE || defined __CYGWIN__) && defined(CVAPI_EXPORTS)
+# if defined _WIN32 || defined WINCE || defined __CYGWIN__
 #   define VoiceSDK_EXPORTS __declspec(dllexport)
-# elif defined __GNUC__ && __GNUC__ >= 4 && (defined(CVAPI_EXPORTS) || defined(__APPLE__))
+# elif defined __GNUC__ && __GNUC__ >= 4
 #   define VoiceSDK_EXPORTS __attribute__ ((visibility ("default")))
 # endif
 #endif

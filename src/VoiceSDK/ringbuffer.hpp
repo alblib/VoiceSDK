@@ -15,7 +15,7 @@
 namespace VoiceSDK{
 
 template <typename T, size_t BufferSize, class Allocator = std::allocator<T>>
-class RingBuffer {
+class VoiceSDK_EXPORTS RingBuffer {
 private:
 	T buffer[BufferSize];
 	size_t head = 0;
