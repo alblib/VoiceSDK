@@ -7,8 +7,9 @@ project(VoiceSDK)
 
 # option(VoiceSDK_SHARED_LIB "Build VoiceSDK shared library" OFF)
 option(VoiceSDK_C_API "Build VoiceSDK C functions" OFF)
-option(BUILD_VoiceSDK_TESTS "Makes test executable project of VoiceSDK by adding main.cpp in the build folder" OFF)
 
+# Testing
+include(CTest)
 
 if ((MSVC) AND (MSVC_VERSION GREATER_EQUAL 1914))
     add_compile_options("/Zc:__cplusplus")
@@ -43,11 +44,8 @@ set_target_properties(
 )
 # target_link_libraries(VoiceSDK PRIVATE Eigen3::Eigen)
 
-if (BUILD_VoiceSDK_TESTS)
-  if (NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/src/main.cpp")
-    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/src/main.cpp" "int main(){\n    return 0;\n}")
-  endif()
-  add_executable("VoiceSDK_test" "${CMAKE_CURRENT_BINARY_DIR}/src/main.cpp")
-  target_link_libraries("VoiceSDK_test" PRIVATE VoiceSDK)
-  set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT "VoiceSDK_test")
+
+# Testing
+if(BUILD_TESTING)
+  add_subdirectory(tests)
 endif()
