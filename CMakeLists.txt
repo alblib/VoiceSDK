@@ -5,7 +5,7 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON) #Required to Windows dll have the symbo
 
 project(VoiceSDK)
 
-option(VoiceSDK_SHARED_LIB "Build VoiceSDK shared library" OFF)
+# option(VoiceSDK_SHARED_LIB "Build VoiceSDK shared library" OFF)
 option(VoiceSDK_C_API "Build VoiceSDK C functions" OFF)
 option(BUILD_VoiceSDK_TESTS "Makes test executable project of VoiceSDK by adding main.cpp in the build folder" OFF)
 
@@ -26,19 +26,22 @@ file(GLOB_RECURSE VoiceSDK_HEADERS
   ${PROJECT_SOURCE_DIR}/src/*.h 
   ${PROJECT_SOURCE_DIR}/src/*.hpp)
 
-if(VoiceSDK_SHARED_LIB)
-  add_library(VoiceSDK SHARED ${VoiceSDK_HEADERS} ${VoiceSDK_SOURCES})
-else()
-  add_library(VoiceSDK STATIC ${VoiceSDK_HEADERS} ${VoiceSDK_SOURCES})
-endif()
+# if(VoiceSDK_SHARED_LIB)
+#   add_library(VoiceSDK SHARED ${VoiceSDK_HEADERS} ${VoiceSDK_SOURCES})
+# else()
+#   add_library(VoiceSDK STATIC ${VoiceSDK_HEADERS} ${VoiceSDK_SOURCES})
+# endif()
+add_library(VoiceSDK INTERFACE)
 
-target_include_directories(VoiceSDK PRIVATE src)
+target_include_directories(VoiceSDK SYSTEM INTERFACE ${PROJECT_SOURCE_DIR}/src)
+target_link_libraries(VoiceSDK INTERFACE Eigen3::Eigen)
+
 set_target_properties(
   VoiceSDK PROPERTIES 
     INTERFACE_INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/src
     LINKER_LANGUAGE CXX # .hpp is not recognized maybe
 )
-target_link_libraries(VoiceSDK PRIVATE Eigen3::Eigen)
+# target_link_libraries(VoiceSDK PRIVATE Eigen3::Eigen)
 
 if (BUILD_VoiceSDK_TESTS)
   if (NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/src/main.cpp")
