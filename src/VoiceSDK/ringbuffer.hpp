@@ -73,8 +73,8 @@ public:
 		IFCONSTEXPR(std::is_trivially_copyable_v<value_type> &&
 			(std::is_same_v<InputIt, pointer>
 				|| std::is_same_v<InputIt, const_pointer>
-				|| std::is_same_v<InputIt, std::vector<value_type>::iterator>
-				|| std::is_same_v<InputIt, std::array<value_type, buffer_size>::iterator>
+				|| std::is_same_v<InputIt, typename std::vector<value_type>::iterator>
+				|| std::is_same_v<InputIt, typename std::array<value_type, buffer_size>::iterator>
 				|| std::is_same_v<InputIt, decltype(std::begin(std::declval<std::valarray<value_type>>()))>
 				))
 		{
