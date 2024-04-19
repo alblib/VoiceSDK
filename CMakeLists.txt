@@ -33,7 +33,12 @@ else()
 endif()
 
 target_include_directories(VoiceSDK PRIVATE src)
-set_target_properties(VoiceSDK PROPERTIES INTERFACE_INCLUDE_DIRECTORIES src)
+set_target_properties(
+  VoiceSDK PROPERTIES 
+    INTERFACE_INCLUDE_DIRECTORIES src
+    LINKER_LANGUAGE CXX # .hpp is not recognized maybe
+)
+target_link_libraries(VoiceSDK PRIVATE Eigen3::Eigen)
 
 if (BUILD_VoiceSDK_TEST)
   if (NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/src/main.cpp")
