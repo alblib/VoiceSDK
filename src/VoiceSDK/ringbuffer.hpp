@@ -12,6 +12,13 @@
 #include <cstring>
 #include <iterator>
 #include <string>
+#include <Eigen/Dense>
+
+#ifndef VoiceSDK_DISABLE_THREADS
+#include <queue>
+#include <mutex>
+#include <condition_variable>
+#endif
 
 namespace VoiceSDK{
 
@@ -74,6 +81,12 @@ private:
 	size_t head = 0;
 	size_t tail = 0;
 	bool contains_content = false;
+
+#ifndef VoiceSDK_DISABLE_THREADS
+	mutable std::mutex mutex_;
+	mutable std::condition_variable condition_;
+#endif
+
 public:
 	static constexpr size_t buffer_size = BufferSize;
 	using value_type = T;
@@ -95,7 +108,28 @@ public:
 	{
 		clear();
 	}
-	constexpr RingBuffer(const RingBuffer&) = default;
+	RingBuffer(const RingBuffer& other)
+	{
+		operator = (other);
+	}
+
+	RingBuffer& operator = (const RingBuffer& other)
+	{
+#ifndef VoiceSDK_DISABLE_THREADS
+		std::lock_guard<std::mutex> lock(other.mutex_);
+#endif
+
+		buffer = other.buffer;
+		head = other.head;
+		tail = other.tail;
+		contains_content = other.contains_content;
+
+#ifndef VoiceSDK_DISABLE_THREADS
+		other.condition_.notify_one();
+#endif
+		return *this;
+	}
+
 	template <size_t OtherBufferSize>
 	explicit RingBuffer(RingBuffer<T, OtherBufferSize>&& other) 
 	{
@@ -133,6 +167,10 @@ public:
 	typename std::enable_if<is_input_iterator_v<InputIt>>::type
 		enqueue(InputIt begin, size_t size)
 	{
+#ifndef VoiceSDK_DISABLE_THREADS
+		std::lock_guard<std::mutex> lock(mutex_);
+#endif
+
 		if (size > buffer_size)
 		{
 			std::advance(begin, size - buffer_size);
@@ -159,6 +197,10 @@ public:
 
 		tail = (tail + size) % buffer_size;
 		contains_content = contains_content || size;
+
+#ifndef VoiceSDK_DISABLE_THREADS
+		condition_.notify_one();
+#endif
 	}
 
 	// casts and enqueue
@@ -169,6 +211,9 @@ public:
 
 	std::vector<value_type> dequeue(size_type elem_count)
 	{
+#ifndef VoiceSDK_DISABLE_THREADS
+		std::lock_guard<std::mutex> lock(mutex_);
+#endif
 		const size_type size = std::min(content_size(), elem_count);
 
 		std::vector<value_type> result;
@@ -195,11 +240,41 @@ public:
 
 		head = (head + size) % buffer_size;
 		contains_content = (size == elem_count);
+
+#ifndef VoiceSDK_DISABLE_THREADS
+		condition_.notify_one();
+#endif
+
 		return result;
 	}
 
 	#pragma endregion
 
+	typename std::enable_if<std::is_floating_point<T>::value, RingBuffer&>::type
+		amplify(value_type amplifier)
+	{
+#ifndef VoiceSDK_DISABLE_THREADS
+		std::lock_guard<std::mutex> lock(mutex_);
+#endif
+		const size_type size = content_size();
+		const size_type part1 = std::min(size, buffer_size - head);
+		const size_type part2 = size - part1;
+
+		pointer begin = buffer.data() + head;
+		pointer middle = begin + part1;
+		pointer end = buffer.data() + part2;
+
+		auto map1 = Eigen::Map<Eigen::ArrayX<T>>(begin, part1);
+		auto map2 = Eigen::Map<Eigen::ArrayX<T>>(middle, part2);
+
+		map1 *= amplifier;
+		map2 *= amplifier;
+
+#ifndef VoiceSDK_DISABLE_THREADS
+		condition_.notify_one();
+#endif
+		return *this;
+	}
 };
 
 }
