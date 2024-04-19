@@ -3,7 +3,7 @@
 #include <iostream>
 #include <exception>
 
-void test_RingBuffer() {
+int test_RingBuffer() {
     VoiceSDK::RingBuffer<float, 128> rb;
     VoiceSDK::RingBuffer<float, 64> rb2(rb);
     VoiceSDK::RingBuffer<float, 256> rb3(rb);
@@ -18,13 +18,16 @@ void test_RingBuffer() {
 
     if (vec2 != a) {
         std::cerr << "VoiceSDK::RingBuffer content copy test failed.";
-        throw std::exception("VoiceSDK::RingBuffer content copy test failed.");
+        return -1;
     }
-    if (vec3 != a)
-        throw std::exception("VoiceSDK::RingBuffer test failed.");
+    if (vec3 != a) {
+        std::cerr << "VoiceSDK::RingBuffer content copy test failed.";
+        return -1;
+    }
+    return 0;
 }
 
 int main(){
-    test_RingBuffer();
+    if (test_RingBuffer() != 0) return -1;
     return 0;
 }
