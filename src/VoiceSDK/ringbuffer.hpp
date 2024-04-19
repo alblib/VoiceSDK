@@ -256,12 +256,13 @@ public:
 #ifndef VoiceSDK_DISABLE_THREADS
 		std::lock_guard<std::mutex> lock(mutex_);
 #endif
+		const size_type size = content_size();
 		const size_type part1 = std::min(size, buffer_size - head);
 		const size_type part2 = size - part1;
 
-		const_pointer begin = buffer.data() + head;
-		const_pointer middle = begin + part1;
-		const_pointer end = buffer.data() + part2;
+		pointer begin = buffer.data() + head;
+		pointer middle = begin + part1;
+		pointer end = buffer.data() + part2;
 
 		auto map1 = Eigen::Map<Eigen::ArrayX<T>>(begin, part1);
 		auto map2 = Eigen::Map<Eigen::ArrayX<T>>(middle, part2);
