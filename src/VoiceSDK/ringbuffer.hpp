@@ -11,8 +11,43 @@
 #include <utility>
 #include <cstring>
 #include <iterator>
+#include <string>
 
 namespace VoiceSDK{
+
+#pragma region is_contiguous_iterator
+
+template <class Iter>
+struct is_contiguous_iterator : std::integral_constant<bool, false> {};
+
+template <class Ptr, typename = std::enable_if<std::is_pointer<Ptr>::value>::type>
+struct is_contiguous_iterator : std::integral_constant<bool, true> {};
+
+#if _CPP_VER >= 202002L
+template <class Iter, typename = std::enable_if_t<std::contiguous_iterator<Iter>>>
+struct is_contiguous_iterator : std::integral_constant<bool, true> {};
+#else
+
+template <class Iter, typename = std::enable_if<std::is_same<Iter, typename std::vector<typename std::iterator_traits<Iter>::value_type>::iterator>::value>::type>
+struct is_contiguous_iterator : std::integral_constant<bool, true> {};
+template <class Iter, typename = std::enable_if<std::is_same<Iter, typename std::array<typename std::iterator_traits<Iter>::value_type, 10>::iterator>::value>::type>
+struct is_contiguous_iterator : std::integral_constant<bool, true> {};
+template <class Iter, typename = std::enable_if<std::is_same<Iter, decltype(std::begin(std::declval<std::valarray<typename std::iterator_traits<Iter>::value_type>>()))>::value>::type>
+struct is_contiguous_iterator : std::integral_constant<bool, true> {};
+template <class Iter, typename = std::enable_if<std::is_same<Iter, typename std::basic_string<typename std::iterator_traits<Iter>::value_type>::iterator>::value>::type>
+struct is_contiguous_iterator : std::integral_constant<bool, true> {};
+
+#if _CPP_VER >= 201703L
+template <class Iter, typename = std::enable_if<std::is_same<Iter, typename std::basic_string_view<typename std::iterator_traits<Iter>::value_type>::iterator>::value>::type>
+struct is_contiguous_iterator : std::integral_constant<bool, true> {};
+#endif
+
+#endif
+
+template <class Iter>
+inline constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<Iter>::value;
+
+#pragma endregion
 
 template <typename T, size_t BufferSize, class Allocator = std::allocator<T>>
 class RingBuffer {
@@ -90,12 +125,7 @@ public:
 		const size_type part2 = size - part1;
 
 		IFCONSTEXPR(std::is_trivially_copyable_v<value_type> &&
-			(std::is_same_v<InputIt, pointer>
-				|| std::is_same_v<InputIt, const_pointer>
-				|| std::is_same_v<InputIt, typename std::vector<value_type>::iterator>
-				|| std::is_same_v<InputIt, typename std::array<value_type, buffer_size>::iterator>
-				|| std::is_same_v<InputIt, decltype(std::begin(std::declval<std::valarray<value_type>>()))>
-				))
+			is_contiguous_iterator_v<InputIt>)
 		{
 			std::memcpy(buffer.data() + tail, &*(begin), part1 * sizeof(value_type));
 			std::memcpy(buffer.data(), &*(begin)+part1, part2 * sizeof(value_type));

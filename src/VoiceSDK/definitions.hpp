@@ -7,6 +7,12 @@
 #define IFCONSTEXPR if
 #endif
 
+#ifdef _MSC_VER
+#define _CPP_VER _MSVC_LANG
+#else
+#define _CPP_VER __cplusplus
+#endif
+
 /*
 #ifndef VoiceSDK_EXPORTS
 # if defined _WIN32 || defined WINCE || defined __CYGWIN__
