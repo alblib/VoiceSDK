@@ -35,16 +35,16 @@ endif()
 target_include_directories(VoiceSDK PRIVATE src)
 set_target_properties(
   VoiceSDK PROPERTIES 
-    INTERFACE_INCLUDE_DIRECTORIES src
+    INTERFACE_INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/src
     LINKER_LANGUAGE CXX # .hpp is not recognized maybe
 )
 target_link_libraries(VoiceSDK PRIVATE Eigen3::Eigen)
 
-if (BUILD_VoiceSDK_TEST)
+if (BUILD_VoiceSDK_TESTS)
   if (NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/src/main.cpp")
-    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/src/main.cpp" "#include <layer_ex.h>\nint main(){\n    return 0;\n}")
+    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/src/main.cpp" "int main(){\n    return 0;\n}")
   endif()
   add_executable("VoiceSDK_test" "${CMAKE_CURRENT_BINARY_DIR}/src/main.cpp")
-  target_link_libraries("VoiceSDK_test" PRIVATE ${CMAKE_PROJECT_NAME})
+  target_link_libraries("VoiceSDK_test" PRIVATE VoiceSDK)
   set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT "VoiceSDK_test")
 endif()
