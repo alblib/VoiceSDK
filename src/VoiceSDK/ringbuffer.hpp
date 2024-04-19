@@ -251,7 +251,7 @@ public:
 	#pragma endregion
 
 	typename std::enable_if<std::is_floating_point<T>::value, RingBuffer&>::type
-		multiply(value_type multiplier)
+		amplify(value_type amplifier)
 	{
 #ifndef VoiceSDK_DISABLE_THREADS
 		std::lock_guard<std::mutex> lock(mutex_);
@@ -266,8 +266,8 @@ public:
 		auto map1 = Eigen::Map<Eigen::ArrayX<T>>(begin, part1);
 		auto map2 = Eigen::Map<Eigen::ArrayX<T>>(middle, part2);
 
-		map1 *= multiplier;
-		map2 *= multiplier;
+		map1 *= amplifier;
+		map2 *= amplifier;
 
 #ifndef VoiceSDK_DISABLE_THREADS
 		condition_.notify_one();
