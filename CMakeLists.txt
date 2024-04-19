@@ -7,6 +7,7 @@ project(VoiceSDK)
 
 # option(VoiceSDK_SHARED_LIB "Build VoiceSDK shared library" OFF)
 option(VoiceSDK_C_API "Build VoiceSDK C functions" OFF)
+option(VoiceSDK_DISABLE_THREADS "Disables multi-thread feature from VoiceSDK and Eigen" OFF)
 
 # Testing
 #include(CTest)
@@ -20,6 +21,11 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
 include(cmake/FindEigen.cmake)
+
+configure_file(
+  ${PROJECT_SOURCE_DIR}/src/VoiceSDK/definitions.hpp.in 
+  ${PROJECT_SOURCE_DIR}/src/VoiceSDK/definitions.hpp
+)
 
 file(GLOB_RECURSE VoiceSDK_SOURCES 
   ${PROJECT_SOURCE_DIR}/src/*.cpp 

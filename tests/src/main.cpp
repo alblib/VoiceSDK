@@ -24,6 +24,17 @@ int test_RingBuffer() {
         std::cerr << "VoiceSDK::RingBuffer content copy test failed.";
         return -1;
     }
+
+    rb2 = static_cast<decltype(rb2)>(rb);
+    for (size_t i = 0; i < 3; ++i)
+        a[i] *= 2;
+    rb2.amplify(2);
+    vec2 = rb2.dequeue();
+    if (vec2 != a) {
+        std::cerr << "VoiceSDK::RingBuffer content amplify test failed.";
+        return -1;
+    }
+
     return 0;
 }
 

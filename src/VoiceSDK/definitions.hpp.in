@@ -13,6 +13,9 @@
 #define _CPP_VER __cplusplus
 #endif
 
+#cmakedefine VoiceSDK_DISABLE_THREADS @VoiceSDK_DISABLE_THREADS@
+#cmakedefine EIGEN_DONT_PARALLELIZE @VoiceSDK_DISABLE_THREADS@
+
 /*
 #ifndef VoiceSDK_EXPORTS
 # if defined _WIN32 || defined WINCE || defined __CYGWIN__
