@@ -12,6 +12,7 @@
 #include <cstring>
 #include <iterator>
 #include <string>
+#include <Eigen/Dense>
 
 #ifndef VoiceSDK_DISABLE_THREADS
 #include <queue>
@@ -249,6 +250,30 @@ public:
 
 	#pragma endregion
 
+	typename std::enable_if<std::is_floating_point<T>::value, RingBuffer&>::type
+		multiply(value_type multiplier)
+	{
+#ifndef VoiceSDK_DISABLE_THREADS
+		std::lock_guard<std::mutex> lock(mutex_);
+#endif
+		const size_type part1 = std::min(size, buffer_size - head);
+		const size_type part2 = size - part1;
+
+		const_pointer begin = buffer.data() + head;
+		const_pointer middle = begin + part1;
+		const_pointer end = buffer.data() + part2;
+
+		auto map1 = Eigen::Map<Eigen::ArrayX<T>>(begin, part1);
+		auto map2 = Eigen::Map<Eigen::ArrayX<T>>(middle, part2);
+
+		map1 *= multiplier;
+		map2 *= multiplier;
+
+#ifndef VoiceSDK_DISABLE_THREADS
+		condition_.notify_one();
+#endif
+		return *this;
+	}
 };
 
 }
