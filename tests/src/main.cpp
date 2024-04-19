@@ -1,5 +1,6 @@
 #include <VoiceSDK/ringbuffer.hpp>
 #include <stdexcept>
+#include <iostream>
 
 void test_RingBuffer() {
     VoiceSDK::RingBuffer<float, 128> rb;
@@ -14,8 +15,10 @@ void test_RingBuffer() {
     auto vec2 = rb2.dequeue();
     auto vec3 = rb3.dequeue();
 
-    if (vec2 != a)
-        throw std::exception("VoiceSDK::RingBuffer test failed.");
+    if (vec2 != a) {
+        std::cerr << "VoiceSDK::RingBuffer content copy test failed.";
+        throw std::exception("VoiceSDK::RingBuffer content copy test failed.");
+    }
     if (vec3 != a)
         throw std::exception("VoiceSDK::RingBuffer test failed.");
 }

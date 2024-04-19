@@ -113,8 +113,8 @@ public:
 		IFCONSTEXPR(std::is_trivially_copyable_v<value_type>)
 		{
 			result.resize(size);
-			std::memcpy(result.data(), begin, part1);
-			std::memcpy(result.data() + part1, buffer, part2);
+			std::memcpy(result.data(), begin, part1 * sizeof(value_type));
+			std::memcpy(result.data() + part1, buffer, part2 * sizeof(value_type));
 		}
 		else
 		{
