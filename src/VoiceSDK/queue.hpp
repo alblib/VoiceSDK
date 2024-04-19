@@ -107,6 +107,14 @@ public:
 		contains_content = (size == elem_count);
 		return result;
 	}
+
+	void clear()
+	{
+		contains_content = false;
+		head = 0;
+		tail = 0;
+		std::fill(buffer, buffer + buffer_size, T());
+	}
 };
 
 }
