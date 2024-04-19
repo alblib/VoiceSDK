@@ -6,6 +6,7 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON) #Required to Windows dll have the symbo
 project(VoiceSDK)
 
 option(VoiceSDK_SHARED_LIB "Build VoiceSDK shared library" OFF)
+option(VoiceSDK_C_API "Build VoiceSDK C functions" OFF)
 option(BUILD_VoiceSDK_TESTS "Makes test executable project of VoiceSDK by adding main.cpp in the build folder" OFF)
 
 
@@ -18,9 +19,18 @@ set(CMAKE_CXX_STANDARD 17)
 
 include(cmake/FindEigen.cmake)
 
-file(GLOB_RECURSE SOURCES src/*)
+file(GLOB_RECURSE VoiceSDK_SOURCES 
+  ${PROJECT_SOURCE_DIR}/src/*.cpp 
+  ${PROJECT_SOURCE_DIR}/src/*.c)
+file(GLOB_RECURSE VoiceSDK_HEADERS 
+  ${PROJECT_SOURCE_DIR}/src/*.h 
+  ${PROJECT_SOURCE_DIR}/src/*.hpp)
 
-add_library(VoiceSDK ${SOURCES})
+if(VoiceSDK_SHARED_LIB)
+  add_library(VoiceSDK SHARED ${VoiceSDK_HEADERS} ${VoiceSDK_SOURCES})
+else()
+  add_library(VoiceSDK STATIC ${VoiceSDK_HEADERS} ${VoiceSDK_SOURCES})
+endif()
 
 target_include_directories(VoiceSDK PRIVATE src)
 set_target_properties(VoiceSDK PROPERTIES INTERFACE_INCLUDE_DIRECTORIES src)
