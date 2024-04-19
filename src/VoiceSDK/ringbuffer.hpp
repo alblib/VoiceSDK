@@ -30,7 +30,18 @@ public:
 	using pointer = typename std::allocator_traits<allocator_type>::pointer;
 	using const_pointer = typename std::allocator_traits<allocator_type>::const_pointer;
 
-	constexpr RingBuffer() = default;
+	void clear()
+	{
+		contains_content = false;
+		head = 0;
+		tail = 0;
+		buffer.fill(value_type());
+	}
+
+	RingBuffer() 
+	{
+		clear();
+	}
 	constexpr RingBuffer(const RingBuffer&) = default;
 	template <size_t OtherBufferSize>
 	explicit RingBuffer(RingBuffer<T, OtherBufferSize>&& other) 
@@ -125,14 +136,6 @@ public:
 		head = (head + size) % buffer_size;
 		contains_content = (size == elem_count);
 		return result;
-	}
-
-	void clear()
-	{
-		contains_content = false;
-		head = 0;
-		tail = 0;
-		buffer.fill(T());
 	}
 };
 
