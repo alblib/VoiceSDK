@@ -36,11 +36,16 @@ public:
 	explicit RingBuffer(RingBuffer<T, OtherBufferSize>&& other) 
 	{
 		auto temp = other.dequeue();
-		enqueue(temp.cend() - std::min(BufferSize, OtherBufferSize), temp.cend());
+		enqueue(temp.cbegin(), temp.cend());
 	}
 
 	template <size_t OtherBufferSize>
-	explicit RingBuffer(const RingBuffer<T, OtherBufferSize>& other) : RingBuffer(std::move(RingBuffer(other))) {}
+	explicit RingBuffer(const RingBuffer<T, OtherBufferSize>& other)
+	{
+		auto temp = other;
+		auto temp2 = temp.dequeue();
+		enqueue(temp2.cbegin(), temp2.cend());
+	}
 
 	constexpr bool empty() { return !contains_content; }
 	constexpr size_type content_size() { return contains_content ? (tail + buffer_size - head) % buffer_size : 0; }
@@ -56,6 +61,12 @@ public:
 	typename std::enable_if_t<std::is_base_of<std::input_iterator_tag, typename std::iterator_traits<InputIt>::iterator_category>::value, void>
 		enqueue(InputIt begin, size_t size) 
 	{
+		if (size > buffer_size)
+		{
+			std::advance(begin, size - buffer_size);
+			size = buffer_size;
+		}
+
 		const size_type part1 = std::min(size, buffer_size - tail);
 		const size_type part2 = size - part1;
 
