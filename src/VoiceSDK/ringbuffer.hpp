@@ -49,6 +49,26 @@ inline constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<Iter>::v
 
 #pragma endregion
 
+
+#pragma region is_input_iterator
+
+template <class Iter>
+struct is_input_iterator : std::integral_constant<bool, false> {};
+
+#if _CPP_VER >= 202002L
+template <class Iter, typename = std::enable_if_t<std::input_iterator<Iter>>>
+struct is_input_iterator : std::integral_constant<bool, true> {};
+#else
+template <class InputIt, typename = std::enable_if<std::is_base_of<std::input_iterator_tag, typename std::iterator_traits<InputIt>::iterator_category>::value>::type>
+struct is_input_iterator : std::integral_constant<bool, true> {};
+#endif
+
+template <class Iter>
+inline constexpr bool is_input_iterator_v = is_input_iterator<Iter>::value;
+
+#pragma endregion
+
+
 template <typename T, size_t BufferSize, class Allocator = std::allocator<T>>
 class RingBuffer {
 private:
@@ -105,15 +125,15 @@ public:
 	}
 
 	template <class InputIt>
-	typename std::enable_if_t<std::is_base_of<std::input_iterator_tag, typename std::iterator_traits<InputIt>::iterator_category>::value, void>
+	typename std::enable_if<is_input_iterator_v<InputIt>>::type
 		enqueue(InputIt begin, InputIt end)
 	{
 		enqueue(begin, std::distance(begin, end));
 	}
 
 	template <class InputIt>
-	typename std::enable_if_t<std::is_base_of<std::input_iterator_tag, typename std::iterator_traits<InputIt>::iterator_category>::value, void>
-		enqueue(InputIt begin, size_t size) 
+	typename std::enable_if<is_input_iterator_v<InputIt>>::type
+		enqueue(InputIt begin, size_t size)
 	{
 		if (size > buffer_size)
 		{
@@ -124,13 +144,13 @@ public:
 		const size_type part1 = std::min(size, buffer_size - tail);
 		const size_type part2 = size - part1;
 
-		IFCONSTEXPR(std::is_trivially_copyable_v<value_type> &&
+		IFCONSTEXPR(std::is_trivially_copyable<value_type>::value &&
 			is_contiguous_iterator_v<InputIt>)
 		{
 			std::memcpy(buffer.data() + tail, &*(begin), part1 * sizeof(value_type));
 			std::memcpy(buffer.data(), &*(begin)+part1, part2 * sizeof(value_type));
 		}
-		else // IFCONSTEXPR(std::is_base_of_v<std::random_access_iterator_tag, std::iterator_traits<InputIt>::iterator_category>)
+		else
 		{
 			InputIt middle = begin, end = begin;
 			std::advance(middle, part1);
@@ -163,7 +183,7 @@ public:
 		const_pointer middle = begin + part1;
 		const_pointer end = buffer.data() + part2;
 
-		IFCONSTEXPR(std::is_trivially_copyable_v<value_type>)
+		IFCONSTEXPR(std::is_trivially_copyable<value_type>::value)
 		{
 			result.resize(size);
 			std::memcpy(result.data(), begin, part1 * sizeof(value_type));
