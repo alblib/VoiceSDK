@@ -9,7 +9,8 @@ project(VoiceSDK)
 option(VoiceSDK_C_API "Build VoiceSDK C functions" OFF)
 
 # Testing
-include(CTest)
+#include(CTest)
+option(VoiceSDK_TESTS "Tests VoiceSDK" ON)
 
 if ((MSVC) AND (MSVC_VERSION GREATER_EQUAL 1914))
     add_compile_options("/Zc:__cplusplus")
@@ -46,6 +47,8 @@ set_target_properties(
 
 
 # Testing
-if(BUILD_TESTING)
+#if(BUILD_TESTING)
+if(VoiceSDK_TESTS)
+  enable_testing()
   add_subdirectory(tests)
 endif()
