@@ -1,3 +1,6 @@
+#ifndef __H_VOICE_SDK_QUEUE_HPP
+#define __H_VOICE_SDK_QUEUE_HPP __TIMESTAMP__
+
 #include "definitions.hpp"
 #include <type_traits>
 #include <algorithm>
@@ -107,3 +110,5 @@ public:
 };
 
 }
+
+#endif
