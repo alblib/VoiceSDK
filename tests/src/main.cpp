@@ -1,4 +1,5 @@
 #include <VoiceSDK/ringbuffer.hpp>
+#include <VoiceSDK/polynomial.hpp>
 #include <stdexcept>
 #include <iostream>
 #include <exception>
