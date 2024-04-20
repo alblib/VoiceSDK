@@ -39,8 +39,20 @@ int test_RingBuffer() {
     return 0;
 }
 
-int test_type_traits() {
+template<class It>
+std::enable_if_t<!VoiceSDK::is_input_iterator_v<It>, bool> test_input_iterator(It a) {
+    return false;
+}
+template<class It>
+VoiceSDK::enable_if_input_iterator_t<It, bool> test_input_iterator(It a)
+{
+    return true;
+}
 
+int test_type_traits() {
+    std::vector<float> a;
+
+    std::cout << test_input_iterator(a.begin());
 
     // input iterator test
     if (!std::is_same_v<VoiceSDK::enable_if_input_iterator<std::vector<float>::iterator>::type, void>)
@@ -79,6 +91,8 @@ int test_type_traits() {
     }
 
 }
+
+
 
 int main(){
     if (test_RingBuffer() != 0) return -1;

@@ -104,13 +104,15 @@ public:
 	}
 
 	template <class InputIt>
-	enable_if_input_iterator_of<InputIt, T> enqueue(InputIt begin, InputIt end)
+	std::enable_if<std::is_same<typename std::remove_cv<decltype(*std::declval<InputIt>())>::type, T>::value>::type
+		enqueue(InputIt begin, InputIt end)
 	{
 		enqueue(begin, std::distance(begin, end));
 	}
 
 	template <class InputIt>
-	enable_if_input_iterator_of<InputIt, T> enqueue(InputIt begin, size_t size)
+	std::enable_if<std::is_same<typename std::remove_cv<decltype(*std::declval<InputIt>())>::type, T>::value>::type
+		enqueue(InputIt begin, size_t size)
 	{
 #ifndef VoiceSDK_DISABLE_THREADS
 		std::lock_guard<std::mutex> lock(mutex_);

@@ -152,10 +152,10 @@ inline constexpr bool is_iterator_value_type_convertible_from_v
 #pragma region enable_if_input_iterator_of
 
 template <typename InputIt, typename ValueType, typename Type = void>
-using enable_if_input_iterator_of = typename std::enable_if<is_input_iterator_v<Iter> && is_iterator_value_type_v<Iter, ValueType>, Type>;
+using enable_if_input_iterator_of = typename std::enable_if<is_input_iterator_v<InputIt> && is_iterator_value_type_v<InputIt, ValueType>, Type>;
 
 template <typename InputIt, typename ValueType, typename Type = void>
-using enable_if_input_iterator_of_t = typename enable_if_input_iterator_of<Iter, Type>::type;
+using enable_if_input_iterator_of_t = typename enable_if_input_iterator_of<InputIt, Type>::type;
 
 #pragma endregion
 
