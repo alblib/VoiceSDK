@@ -17,7 +17,7 @@ namespace VoiceSDK
 
 #ifndef VoiceSDK_DISABLE_THREADS
 template <class To, class InputIt>
-enable_if_input_iterator_convertible_to_t<InputIt, To, std::vector<To>>
+enable_if_input_iterator_of_convertible_to_t<InputIt, To, std::vector<To>>
     parallel_cast(InputIt from_begin, InputIt from_end)
 {
     std::vector<std::future<To>> futures;
@@ -89,7 +89,7 @@ std::enable_if<std::is_convertible<From, To>::value, std::valarray<To>>::type
 
 #else
 template <class To, class InputIt>
-enable_if_input_iterator_convertible_to_t<InputIt, To, std::vector<To>>
+enable_if_input_iterator_of_convertible_to_t<InputIt, To, std::vector<To>>
     parallel_cast(InputIt from_begin, InputIt from_end)
 {
     std::vector<To> results;
