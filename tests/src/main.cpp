@@ -40,10 +40,23 @@ int test_RingBuffer() {
 }
 
 int test_type_traits() {
+
+
     // input iterator test
     if (!std::is_same_v<VoiceSDK::enable_if_input_iterator<std::vector<float>::iterator>::type, void>)
     {
         std::cerr << "VoiceSDK::enable_if_input_iterator does not capture iterator.";
+        return -2;
+    }
+
+    if (!VoiceSDK::is_input_iterator_v<std::vector<float>::iterator>)
+    {
+        std::cerr << "VoiceSDK::is_input_iterator gives wrong value.";
+        return -2;
+    }
+    if (VoiceSDK::is_input_iterator_v<int>)
+    {
+        std::cerr << "VoiceSDK::is_input_iterator gives wrong value.";
         return -2;
     }
 

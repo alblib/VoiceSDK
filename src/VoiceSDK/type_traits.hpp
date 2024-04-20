@@ -49,11 +49,15 @@ inline constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<Iter>::v
 #pragma region is_input_iterator
 
 #if _CPP_VER >= 202002L
-template <class Iter>
-struct is_input_iterator : std::integral_constant<bool, std::input_iterator<Iter>> {};
+template <class InputIt>
+struct is_input_iterator : std::integral_constant<bool, std::input_iterator<InputIt>> {};
 #else
-template <class Iter>
-struct is_input_iterator : std::integral_constant<bool, std::is_base_of<std::input_iterator_tag, typename std::iterator_traits<Iter>::iterator_category>::value> {};
+template <class InputIt, class = void>
+struct is_input_iterator : std::false_type {};
+template <class InputIt>
+struct is_input_iterator<InputIt, typename std::enable_if<
+    std::is_base_of<std::input_iterator_tag, typename std::iterator_traits<InputIt>::iterator_category>::value
+>::type> : std::true_type {};
 #endif
 
 template <class Iter>
