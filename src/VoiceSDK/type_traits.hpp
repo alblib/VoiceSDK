@@ -68,57 +68,82 @@ template <typename Iter, typename Type = void>
 using enable_if_input_iterator = typename std::enable_if<is_input_iterator_v<Iter>, Type>;
 
 template <typename Iter, typename Type = void>
-using enable_if_input_iterator_t = typename enable_if_input_iterator::type;
+using enable_if_input_iterator_t = typename enable_if_input_iterator<Iter, Type>::type;
 
 #pragma endregion
 
+
+#pragma region is_iterator_value_type
 template <class Iter, class ValueType, class = void>
 struct is_iterator_value_type: std::false_type {};
 
 template <class Iter, class ValueType>
 struct is_iterator_value_type<
-        Iter, ValueType,
-        typename std::iterator_traits<Iter>::value_type
-    > : std::integral_constant<bool, 
-        std::is_same<std::iterator_traits<Iter>::value_type, ValueType>::value
-    > {};
+    Iter, ValueType,
+    typename std::enable_if<
+        std::is_same<typename std::iterator_traits<Iter>::value_type, ValueType>::value
+    >::type
+> : std::true_type {};
 
 template <class Iter, class ValueType>
 inline constexpr bool is_iterator_value_type_v 
     = is_iterator_value_type<Iter, ValueType>::value;
+#pragma endregion
 
-
+#pragma region is_iterator_value_type_base_of
 template <class Iter, class DerivedValueType, class = void>
 struct is_iterator_value_type_base_of: std::false_type {};
 
 template <class Iter, class DerivedValueType>
 struct is_iterator_value_type_base_of<
-        Iter, DerivedValueType,
-        typename std::iterator_traits<Iter>::value_type
-    > : std::integral_constant<bool, 
-        std::is_base_of<std::iterator_traits<Iter>::value_type, DerivedValueType>::value
-    > {};
+    Iter, DerivedValueType,
+    typename std::enable_if<
+        std::is_base_of<typename std::iterator_traits<Iter>::value_type, DerivedValueType>::value
+    >::type
+> : std::true_type {};
 
 template <class Iter, class DerivedValueType>
 inline constexpr bool is_iterator_value_type_base_of_v 
     = is_iterator_value_type_base_of<Iter, DerivedValueType>::value;
 
+#pragma endregion
+
+#pragma region is_iterator_value_type_convertible_to
 
 template <class Iter, class To, class = void>
-struct is_iterator_value_type_convertible: std::false_type {};
+struct is_iterator_value_type_convertible_to: std::false_type {};
 
 template <class Iter, class To>
-struct is_iterator_value_type_base_of<
-        Iter, To,
-        typename std::iterator_traits<Iter>::value_type
-    > : std::integral_constant<bool, 
-        std::is_convertible<std::iterator_traits<Iter>::value_type, To>::value
-    > {};
+struct is_iterator_value_type_convertible_to<
+    Iter, To,
+    typename std::enable_if<
+        std::is_convertible<typename std::iterator_traits<Iter>::value_type, To>::value
+    >::type
+> : std::true_type {};
 
 template <class Iter, class To>
-inline constexpr bool is_iterator_value_type_convertible_v 
-    = is_iterator_value_type_convertible<Iter, To>::value;
+inline constexpr bool is_iterator_value_type_convertible_to_v
+    = is_iterator_value_type_convertible_to<Iter, To>::value;
+#pragma endregion
 
+
+#pragma region is_iterator_value_type_convertible_from
+
+template <class Iter, class From, class = void>
+struct is_iterator_value_type_convertible_from : std::false_type {};
+
+template <class Iter, class From>
+struct is_iterator_value_type_convertible_from<
+    Iter, From,
+    typename std::enable_if<
+    std::is_convertible<From, typename std::iterator_traits<Iter>::value_type>::value
+    >::type
+> : std::true_type {};
+
+template <class Iter, class From>
+inline constexpr bool is_iterator_value_type_convertible_from_v
+= is_iterator_value_type_convertible_from<Iter, From>::value;
+#pragma endregion
 
 } // namespace VoiceSDK
 
