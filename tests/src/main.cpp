@@ -55,10 +55,6 @@ int test_type_traits() {
     
     std::cout << VoiceSDK::is_iterator_of_ignore_cv_v<decltype(a.cbegin()), float>;
 
-    float* b;
-
-    std::cout << test(b);
-
     std::cout << VoiceSDK::is_input_iterator_v<float*>;
     std::cout << VoiceSDK::is_iterator_of_v<float*, float>;
 
@@ -97,6 +93,7 @@ int test_type_traits() {
         std::cerr << "VoiceSDK::is_iterator_value_type_v gives true even for a non iterator.";
         return -2;
     }
+    return 0;
 
 }
 
