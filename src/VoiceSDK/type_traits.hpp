@@ -92,9 +92,32 @@ struct is_iterator_of<
 template <class Iter, class ValueType>
 inline constexpr bool is_iterator_of_v
     = is_iterator_of<Iter, ValueType>::value;
+
+template <class InputIt, class ValueType>
+using is_input_iterator_of 
+    = std::integral_constant<bool, 
+        is_input_iterator_v<InputIt>
+        && is_iterator_of_v<InputIt, ValueType>
+    >;
+
+template <class InputIt, class ValueType>
+inline constexpr bool is_input_iterator_of_v = is_input_iterator_of<InputIt, ValueType>::value;
+
 #pragma endregion
 
+#pragma region enable_if_input_iterator_of
+
+template <typename InputIt, typename ValueType, typename Type = void>
+using enable_if_input_iterator_of = typename std::enable_if<is_input_iterator_v<InputIt> && is_iterator_of_v<InputIt, ValueType>, Type>;
+
+template <typename InputIt, typename ValueType, typename Type = void>
+using enable_if_input_iterator_of_t = typename enable_if_input_iterator_of<InputIt, ValueType, Type>::type;
+
+#pragma endregion
+
+
 #pragma region is_iterator_of_ignore_cv
+
 template <class Iter, class ValueType, class = void>
 struct is_iterator_of_ignore_cv : std::false_type {};
 
@@ -112,7 +135,36 @@ struct is_iterator_of_ignore_cv<
 template <class Iter, class ValueType>
 inline constexpr bool is_iterator_of_ignore_cv_v 
     = is_iterator_of_ignore_cv<Iter, ValueType>::value;
+
+template <typename InputIt, typename ValueType, typename Type = void>
+using enable_if_iterator_of_ignore_cv 
+    = typename std::enable_if<is_iterator_of_ignore_cv_v<InputIt, ValueType>, Type>;
+
+template <typename InputIt, typename ValueType, typename Type = void>
+using enable_if_iterator_of_ignore_cv_t 
+    = typename enable_if_iterator_of_ignore_cv<InputIt, ValueType, Type>::type;
+
+template <class InputIt, class ValueType>
+using is_input_iterator_of_ignore_cv
+    = std::integral_constant<bool, 
+        is_input_iterator_v<InputIt>
+        && is_iterator_of_ignore_cv_v<InputIt, ValueType>
+    >;
+
+template <class InputIt, class ValueType>
+inline constexpr bool is_input_iterator_of_ignore_cv_v 
+    = is_input_iterator_of_ignore_cv<InputIt, ValueType>::value;
+
+template <typename InputIt, typename ValueType, typename Type = void>
+using enable_if_input_iterator_of_ignore_cv 
+    = typename std::enable_if<is_input_iterator_of_ignore_cv_v<InputIt, ValueType>, Type>;
+
+template <typename InputIt, typename ValueType, typename Type = void>
+using enable_if_input_iterator_of_ignore_cv_t 
+    = typename enable_if_input_iterator_of_ignore_cv<InputIt, ValueType, Type>::type;
+
 #pragma endregion
+
 
 #pragma region is_iterator_of_derived_from
 template <class Iter, class BaseOfValueType, class = void>
@@ -130,7 +182,35 @@ template <class Iter, class BaseOfValueType>
 inline constexpr bool is_iterator_of_derived_from_v
     = is_iterator_of_derived_from<Iter, BaseOfValueType>::value;
 
+template <class InputIt, class BaseOfValueType, class Type = void>
+using enable_if_iterator_of_derived_from 
+    = typename std::enable_if<is_iterator_of_derived_from_v<InputIt, BaseOfValueType>, Type>;
+
+template <class InputIt, class BaseOfValueType, class Type = void>
+using enable_if_iterator_of_derived_from_t 
+    = typename enable_if_iterator_of_derived_from<InputIt, BaseOfValueType, Type>::type;
+
+template <class InputIt, class BaseOfValueType>
+using is_input_iterator_of_derived_from
+    = std::integral_constant<bool, 
+        is_input_iterator_v<InputIt>
+        && is_iterator_of_derived_from_v<InputIt, BaseOfValueType>
+    >;
+
+template <class InputIt, class BaseOfValueType>
+inline constexpr bool is_input_iterator_of_derived_from_v 
+    = is_input_iterator_of_derived_from<InputIt, BaseOfValueType>::value;
+    
+template <class InputIt, class BaseOfValueType, class Type = void>
+using enable_if_input_iterator_of_derived_from 
+    = typename std::enable_if<is_input_iterator_of_derived_from_v<InputIt, BaseOfValueType>, Type>;
+
+template <class InputIt, class BaseOfValueType, class Type = void>
+using enable_if_input_iterator_of_derived_from_t 
+    = typename enable_if_input_iterator_of_derived_from<InputIt, BaseOfValueType, Type>::type;
+
 #pragma endregion
+
 
 #pragma region is_iterator_of_convertible_to
 
@@ -148,6 +228,34 @@ struct is_iterator_of_convertible_to<
 template <class Iter, class To>
 inline constexpr bool is_iterator_of_convertible_to_v
     = is_iterator_of_convertible_to<Iter, To>::value;
+
+template <class InputIt, class To, class Type = void>
+using enable_if_iterator_of_convertible_to 
+    = typename std::enable_if<is_iterator_of_convertible_to_v<InputIt, To>, Type>;
+
+template <class InputIt, class To, class Type = void>
+using enable_if_iterator_of_convertible_to_t 
+    = typename enable_if_iterator_of_convertible_to<InputIt, To, Type>::type;
+
+template <class InputIt, class To>
+using is_input_iterator_of_convertible_to
+    = std::integral_constant<bool, 
+        is_input_iterator_v<InputIt>
+        && is_iterator_of_convertible_to_v<InputIt, To>
+    >;
+
+template <class InputIt, class To>
+inline constexpr bool is_input_iterator_of_convertible_to_v 
+    = is_input_iterator_of_convertible_to<InputIt, To>::value;
+
+template <class InputIt, class To, class Type = void>
+using enable_if_input_iterator_of_convertible_to 
+    = typename std::enable_if<is_input_iterator_of_convertible_to_v<InputIt, To>, Type>;
+
+template <class InputIt, class To, class Type = void>
+using enable_if_input_iterator_of_convertible_to_t 
+    = typename enable_if_input_iterator_of_convertible_to<InputIt, To, Type>::type;
+
 #pragma endregion
 
 
@@ -166,28 +274,38 @@ struct is_iterator_of_convertible_from<
 
 template <class Iter, class From>
 inline constexpr bool is_iterator_of_convertible_from_v
-= is_iterator_of_convertible_from<Iter, From>::value;
+    = is_iterator_of_convertible_from<Iter, From>::value;
+
+template <class InputIt, class From, class Type = void>
+using enable_if_iterator_of_convertible_from 
+    = typename std::enable_if<is_iterator_of_convertible_from_v<InputIt, From>, Type>;
+    
+template <class InputIt, class From, class Type = void>
+using enable_if_iterator_of_convertible_from_t
+    = typename enable_if_iterator_of_convertible_from<InputIt, From, Type>::type;
+
+template <class InputIt, class From>
+using is_input_iterator_of_convertible_from
+    = std::integral_constant<bool, 
+        is_input_iterator_v<InputIt>
+        && is_iterator_of_convertible_from_v<InputIt, From>
+    >;
+
+template <class InputIt, class From>
+inline constexpr bool is_input_iterator_of_convertible_from_v 
+    = is_input_iterator_of_convertible_from<InputIt, From>::value;
+
+template <class InputIt, class From, class Type = void>
+using enable_if_input_iterator_of_convertible_from 
+    = typename std::enable_if<is_input_iterator_of_convertible_from_v<InputIt, From>, Type>;
+    
+template <class InputIt, class From, class Type = void>
+using enable_if_input_iterator_of_convertible_from_t
+    = typename enable_if_input_iterator_of_convertible_from<InputIt, From, Type>::type;
+
 #pragma endregion
 
-#pragma region enable_if_input_iterator_of
 
-template <typename InputIt, typename ValueType, typename Type = void>
-using enable_if_input_iterator_of = typename std::enable_if<is_input_iterator_v<InputIt> && is_iterator_of_v<InputIt, ValueType>, Type>;
-
-template <typename InputIt, typename ValueType, typename Type = void>
-using enable_if_input_iterator_of_t = typename enable_if_input_iterator_of<InputIt, ValueType, Type>::type;
-
-#pragma endregion
-
-#pragma region enable_if_input_iterator_of_ignore_cv
-
-template <typename InputIt, typename ValueType, typename Type = void>
-using enable_if_input_iterator_of_ignore_cv = typename std::enable_if<is_input_iterator_v<InputIt> && is_iterator_of_ignore_cv_v<InputIt, ValueType>, Type>;
-
-template <typename InputIt, typename ValueType, typename Type = void>
-using enable_if_input_iterator_of_ignore_cv_t = typename enable_if_input_iterator_of_ignore_cv<InputIt, ValueType, Type>::type;
-
-#pragma endregion
 
 } // namespace VoiceSDK
 
