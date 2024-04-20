@@ -7,23 +7,18 @@
 #include <future>
 #include <vector>
 #include <Eigen/Dense>
+#include <valarray>
+#include <array>
 
 namespace VoiceSDK
 {
 
-/*
-template <class To, class InputIt>
-using vector_To_if_input_iterator_value_type_convertible_to_To
-    = typename std::enable_if<
-        is_input_iterator_v<InputIt> 
-        && 
-    , std::vector<To>>::type;
-
-    */
+#pragma region Generic array cast
 
 #ifndef VoiceSDK_DISABLE_THREADS
 template <class To, class InputIt>
-enable_if_input_iterator_t<InputIt, std::vector<To>> parallel_cast(InputIt from_begin, InputIt from_end)
+enable_if_input_iterator_convertible_to_t<InputIt, To, std::vector<To>>
+    parallel_cast(InputIt from_begin, InputIt from_end)
 {
     std::vector<std::future<To>> futures;
     futures.reserve(from_array.size());
@@ -43,9 +38,59 @@ enable_if_input_iterator_t<InputIt, std::vector<To>> parallel_cast(InputIt from_
     return results;
 }
 
+template <class To, class From>
+std::enable_if<std::is_convertible<From, To>::value, std::vector<To>>::type
+    parallel_cast(const std::vector<From>& from_array)
+{
+    return parallel_cast<To>(from_array.cbegin(), from_array.cend());
+}
+
+template <class To, size_t N, class From>
+std::enable_if<std::is_convertible<From, To>::value, std::array<To, N>>::type
+    parallel_cast(const std::array<From, N>& from_array)
+{
+    std::vector<std::future<To>> futures;
+    futures.reserve(from_array.size());
+    for (const From& from: from_array)
+    {
+        futures.push_back(std::async(std::launch:async, [&from]() {
+            return static_cast<To>(from);
+        }));
+    }
+
+    // Wait for all tasks to finish and collect results
+    std::array<To, N> results;
+    for (size_t i = 0; i < N; ++i)
+        results[i] = futures[i].get();
+
+    return results;
+}
+
+template <class To, size_t N, class From>
+std::enable_if<std::is_convertible<From, To>::value, std::valarray<To>>::type
+    parallel_cast(const std::valarray<From>& from_array)
+{
+    std::vector<std::future<To>> futures;
+    futures.reserve(from_array.size());
+    for (const From& from: from_array)
+    {
+        futures.push_back(std::async(std::launch:async, [&from]() {
+            return static_cast<To>(from);
+        }));
+    }
+
+    // Wait for all tasks to finish and collect results
+    std::valarray<To> results(from_array.size());
+    for (size_t i = 0; i < N; ++i)
+        results[i] = futures[i].get();
+
+    return results;
+}
+
 #else
 template <class To, class InputIt>
-enable_if_input_iterator_t<InputIt, std::vector<To>> parallel_cast(InputIt from_begin, InputIt from_end)
+enable_if_input_iterator_convertible_to_t<InputIt, To, std::vector<To>>
+    parallel_cast(InputIt from_begin, InputIt from_end)
 {
     std::vector<To> results;
     results.reserve(from_array.size());
@@ -56,13 +101,40 @@ enable_if_input_iterator_t<InputIt, std::vector<To>> parallel_cast(InputIt from_
 
     return results;
 }
-#endif
 
 template <class To, class From>
-std::enable_if<std::is_convertible<From, To>::value, std::vector<To>> parallel_cast(const std::vector<From>& from_array)
+std::enable_if<std::is_convertible<From, To>::value, std::vector<To>>::type
+    parallel_cast(const std::vector<From>& from_array)
 {
-    
+    return parallel_cast<To>(from_array.cbegin(), from_array.cend());
 }
+
+template <class To, size_t N, class From>
+std::enable_if<std::is_convertible<From, To>::value, std::array<To, N>>::type
+    parallel_cast(const std::array<From, N>& from_array)
+{
+    std::array<To, N> results;
+    for (size_t i = 0; i < N; ++i)
+        results[i] = static_cast<To>(from_array[i]);
+
+    return results;
+}
+
+template <class To, size_t N, class From>
+std::enable_if<std::is_convertible<From, To>::value, std::valarray<To>>::type
+    parallel_cast(const std::valarray<From>& from_array)
+{
+    std::valarray<To> results(from_array.size());
+    for (size_t i = 0; i < N; ++i)
+        results[i] = static_cast<To>(from_array[i]);
+
+    return results;
+}
+
+#endif
+
+#pragma endregion
+
 
 
 } // namespace VoiceSDK
