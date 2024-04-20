@@ -104,15 +104,13 @@ public:
 	}
 
 	template <class InputIt>
-	enable_if_input_iterator_t<InputIt>
-		enqueue(InputIt begin, InputIt end)
+	enable_if_input_iterator_of<InputIt, T> enqueue(InputIt begin, InputIt end)
 	{
 		enqueue(begin, std::distance(begin, end));
 	}
 
 	template <class InputIt>
-	enable_if_input_iterator_t<InputIt>
-		enqueue(InputIt begin, size_t size)
+	enable_if_input_iterator_of<InputIt, T> enqueue(InputIt begin, size_t size)
 	{
 #ifndef VoiceSDK_DISABLE_THREADS
 		std::lock_guard<std::mutex> lock(mutex_);

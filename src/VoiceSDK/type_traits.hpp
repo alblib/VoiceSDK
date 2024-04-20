@@ -149,6 +149,16 @@ inline constexpr bool is_iterator_value_type_convertible_from_v
 = is_iterator_value_type_convertible_from<Iter, From>::value;
 #pragma endregion
 
+#pragma region enable_if_input_iterator_of
+
+template <typename InputIt, typename ValueType, typename Type = void>
+using enable_if_input_iterator_of = typename std::enable_if<is_input_iterator_v<Iter> && is_iterator_value_type_v<Iter, ValueType>, Type>;
+
+template <typename InputIt, typename ValueType, typename Type = void>
+using enable_if_input_iterator_of_t = typename enable_if_input_iterator_of<Iter, Type>::type;
+
+#pragma endregion
+
 } // namespace VoiceSDK
 
 #endif //__H_VOICE_SDK_TYPE_TRAITS_HPP
