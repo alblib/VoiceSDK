@@ -69,7 +69,7 @@ inline constexpr bool is_input_iterator_v = is_input_iterator<Iter>::value;
 #pragma region enable_if_input_iterator
 
 template <typename Iter, typename Type = void>
-using enable_if_input_iterator = typename std::enable_if<is_input_iterator_v<Iter>, Type>;
+struct enable_if_input_iterator : std::enable_if<is_input_iterator_v<Iter>, Type> {};
 
 template <typename Iter, typename Type = void>
 using enable_if_input_iterator_t = typename enable_if_input_iterator<Iter, Type>::type;
@@ -77,12 +77,12 @@ using enable_if_input_iterator_t = typename enable_if_input_iterator<Iter, Type>
 #pragma endregion
 
 
-#pragma region is_iterator_value_type
+#pragma region is_iterator_of
 template <class Iter, class ValueType, class = void>
-struct is_iterator_value_type: std::false_type {};
+struct is_iterator_of: std::false_type {};
 
 template <class Iter, class ValueType>
-struct is_iterator_value_type<
+struct is_iterator_of<
     Iter, ValueType,
     typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iter>::value_type, ValueType>::value
@@ -90,35 +90,55 @@ struct is_iterator_value_type<
 > : std::true_type {};
 
 template <class Iter, class ValueType>
-inline constexpr bool is_iterator_value_type_v 
-    = is_iterator_value_type<Iter, ValueType>::value;
+inline constexpr bool is_iterator_of_v
+    = is_iterator_of<Iter, ValueType>::value;
 #pragma endregion
 
-#pragma region is_iterator_value_type_base_of
-template <class Iter, class DerivedValueType, class = void>
-struct is_iterator_value_type_base_of: std::false_type {};
+#pragma region is_iterator_of_ignore_cv
+template <class Iter, class ValueType, class = void>
+struct is_iterator_of_ignore_cv : std::false_type {};
 
-template <class Iter, class DerivedValueType>
-struct is_iterator_value_type_base_of<
-    Iter, DerivedValueType,
+template <class Iter, class ValueType>
+struct is_iterator_of_ignore_cv<
+    Iter, ValueType,
     typename std::enable_if<
-        std::is_base_of<typename std::iterator_traits<Iter>::value_type, DerivedValueType>::value
+        std::is_same<
+            typename std::remove_cv<typename std::iterator_traits<Iter>::value_type>::type, 
+            typename std::remove_cv<ValueType>::type
+        >::value
     >::type
 > : std::true_type {};
 
-template <class Iter, class DerivedValueType>
-inline constexpr bool is_iterator_value_type_base_of_v 
-    = is_iterator_value_type_base_of<Iter, DerivedValueType>::value;
+template <class Iter, class ValueType>
+inline constexpr bool is_iterator_of_ignore_cv_v 
+    = is_iterator_of_ignore_cv<Iter, ValueType>::value;
+#pragma endregion
+
+#pragma region is_iterator_of_derived_from
+template <class Iter, class BaseOfValueType, class = void>
+struct is_iterator_of_derived_from : std::false_type {};
+
+template <class Iter, class BaseOfValueType>
+struct is_iterator_of_derived_from<
+    Iter, BaseOfValueType,
+    typename std::enable_if<
+        std::is_base_of<BaseOfValueType, typename std::iterator_traits<Iter>::value_type>::value
+    >::type
+> : std::true_type {};
+
+template <class Iter, class BaseOfValueType>
+inline constexpr bool is_iterator_of_derived_from_v
+    = is_iterator_of_derived_from<Iter, BaseOfValueType>::value;
 
 #pragma endregion
 
-#pragma region is_iterator_value_type_convertible_to
+#pragma region is_iterator_of_convertible_to
 
 template <class Iter, class To, class = void>
-struct is_iterator_value_type_convertible_to: std::false_type {};
+struct is_iterator_of_convertible_to : std::false_type {};
 
 template <class Iter, class To>
-struct is_iterator_value_type_convertible_to<
+struct is_iterator_of_convertible_to<
     Iter, To,
     typename std::enable_if<
         std::is_convertible<typename std::iterator_traits<Iter>::value_type, To>::value
@@ -126,18 +146,18 @@ struct is_iterator_value_type_convertible_to<
 > : std::true_type {};
 
 template <class Iter, class To>
-inline constexpr bool is_iterator_value_type_convertible_to_v
-    = is_iterator_value_type_convertible_to<Iter, To>::value;
+inline constexpr bool is_iterator_of_convertible_to_v
+    = is_iterator_of_convertible_to<Iter, To>::value;
 #pragma endregion
 
 
-#pragma region is_iterator_value_type_convertible_from
+#pragma region is_iterator_of_convertible_from
 
 template <class Iter, class From, class = void>
-struct is_iterator_value_type_convertible_from : std::false_type {};
+struct is_iterator_of_convertible_from : std::false_type {};
 
 template <class Iter, class From>
-struct is_iterator_value_type_convertible_from<
+struct is_iterator_of_convertible_from<
     Iter, From,
     typename std::enable_if<
     std::is_convertible<From, typename std::iterator_traits<Iter>::value_type>::value
@@ -145,17 +165,27 @@ struct is_iterator_value_type_convertible_from<
 > : std::true_type {};
 
 template <class Iter, class From>
-inline constexpr bool is_iterator_value_type_convertible_from_v
-= is_iterator_value_type_convertible_from<Iter, From>::value;
+inline constexpr bool is_iterator_of_convertible_from_v
+= is_iterator_of_convertible_from<Iter, From>::value;
 #pragma endregion
 
 #pragma region enable_if_input_iterator_of
 
 template <typename InputIt, typename ValueType, typename Type = void>
-using enable_if_input_iterator_of = typename std::enable_if<is_input_iterator_v<InputIt> && is_iterator_value_type_v<InputIt, ValueType>, Type>;
+struct enable_if_input_iterator_of : std::enable_if<is_input_iterator_v<InputIt> && is_iterator_of_v<InputIt, ValueType>, Type> {};
 
 template <typename InputIt, typename ValueType, typename Type = void>
 using enable_if_input_iterator_of_t = typename enable_if_input_iterator_of<InputIt, Type>::type;
+
+#pragma endregion
+
+#pragma region enable_if_input_iterator_of_ignore_cv
+
+template <typename InputIt, typename ValueType, typename Type = void>
+struct enable_if_input_iterator_of_ignore_cv : std::enable_if<is_input_iterator_v<InputIt> && is_iterator_of_ignore_cv_v<InputIt, ValueType>, Type> {};
+
+template <typename InputIt, typename ValueType, typename Type = void>
+using enable_if_input_iterator_of_ignore_cv_t = typename enable_if_input_iterator_of_ignore_cv<InputIt, Type>::type;
 
 #pragma endregion
 
