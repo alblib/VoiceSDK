@@ -53,7 +53,6 @@ set_target_properties(
 
 
 # Testing
-#if(BUILD_TESTING)
 if(VoiceSDK_TESTS)
   enable_testing()
   add_subdirectory(tests)

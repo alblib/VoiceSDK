@@ -1,4 +1,5 @@
 #include <VoiceSDK/ringbuffer.hpp>
+#include <VoiceSDK/type_traits.hpp>
 #include <stdexcept>
 #include <iostream>
 #include <exception>
@@ -38,7 +39,49 @@ int test_RingBuffer() {
     return 0;
 }
 
+int test_type_traits() {
+
+
+    // input iterator test
+    if (!std::is_same_v<VoiceSDK::enable_if_input_iterator<std::vector<float>::iterator>::type, void>)
+    {
+        std::cerr << "VoiceSDK::enable_if_input_iterator does not capture iterator.";
+        return -2;
+    }
+
+    if (!VoiceSDK::is_input_iterator_v<std::vector<float>::iterator>)
+    {
+        std::cerr << "VoiceSDK::is_input_iterator gives wrong value.";
+        return -2;
+    }
+    if (VoiceSDK::is_input_iterator_v<int>)
+    {
+        std::cerr << "VoiceSDK::is_input_iterator gives wrong value.";
+        return -2;
+    }
+
+    if (!VoiceSDK::is_iterator_value_type_v<std::vector<float>::iterator, float>)
+    {
+        std::cerr << "VoiceSDK::is_iterator_value_type_v cannot compare its value type.";
+        return -2;
+    }
+
+    if (VoiceSDK::is_iterator_value_type_v<std::vector<float>::iterator, int>)
+    {
+        std::cerr << "VoiceSDK::is_iterator_value_type_v cannot compare its value type.";
+        return -2;
+    }
+
+    if (VoiceSDK::is_iterator_value_type_v<int, float>) // should be compilable even if it is not iterator
+    {
+        std::cerr << "VoiceSDK::is_iterator_value_type_v gives true even for a non iterator.";
+        return -2;
+    }
+
+}
+
 int main(){
     if (test_RingBuffer() != 0) return -1;
+    if (test_type_traits() != 0) return -2;
     return 0;
 }
