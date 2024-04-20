@@ -1,4 +1,5 @@
 #include <VoiceSDK/ringbuffer.hpp>
+#include <VoiceSDK/type_traits.hpp>
 #include <stdexcept>
 #include <iostream>
 #include <exception>
@@ -38,7 +39,68 @@ int test_RingBuffer() {
     return 0;
 }
 
+
+template<class It>
+//std::enable_if_t<VoiceSDK::is_input_iterator_v<It> && VoiceSDK::is_iterator_of_v<It, float>, bool>
+VoiceSDK::enable_if_input_iterator_of_ignore_cv_t<It, float, bool>
+test(It a)
+{
+    return true;
+}
+
+int test_type_traits() {
+    std::vector<float> a;
+
+    std::cout << VoiceSDK::is_input_iterator_v<decltype(a.cbegin())>;
+    
+    std::cout << VoiceSDK::is_iterator_of_ignore_cv_v<decltype(a.cbegin()), float>;
+
+    std::cout << VoiceSDK::is_input_iterator_v<float*>;
+    std::cout << VoiceSDK::is_iterator_of_v<float*, float>;
+
+    // input iterator test
+    if (!std::is_same_v<VoiceSDK::enable_if_input_iterator<std::vector<float>::iterator>::type, void>)
+    {
+        std::cerr << "VoiceSDK::enable_if_input_iterator does not capture iterator.";
+        return -2;
+    }
+
+    if (!VoiceSDK::is_input_iterator_v<std::vector<float>::iterator>)
+    {
+        std::cerr << "VoiceSDK::is_input_iterator gives wrong value.";
+        return -2;
+    }
+    if (VoiceSDK::is_input_iterator_v<int>)
+    {
+        std::cerr << "VoiceSDK::is_input_iterator gives wrong value.";
+        return -2;
+    }
+
+    if (!VoiceSDK::is_iterator_of_v<std::vector<float>::iterator, float>)
+    {
+        std::cerr << "VoiceSDK::is_iterator_value_type_v cannot compare its value type.";
+        return -2;
+    }
+
+    if (VoiceSDK::is_iterator_of_v<std::vector<float>::iterator, int>)
+    {
+        std::cerr << "VoiceSDK::is_iterator_value_type_v cannot compare its value type.";
+        return -2;
+    }
+
+    if (VoiceSDK::is_iterator_of_v<int, float>) // should be compilable even if it is not iterator
+    {
+        std::cerr << "VoiceSDK::is_iterator_value_type_v gives true even for a non iterator.";
+        return -2;
+    }
+    return 0;
+
+}
+
+
+
 int main(){
     if (test_RingBuffer() != 0) return -1;
+    if (test_type_traits() != 0) return -2;
     return 0;
 }
