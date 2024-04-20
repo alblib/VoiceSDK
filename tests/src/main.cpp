@@ -1,5 +1,6 @@
 #include <VoiceSDK/ringbuffer.hpp>
 #include <VoiceSDK/type_traits.hpp>
+#include <VoiceSDK/parallel_cast.hpp>
 #include <stdexcept>
 #include <iostream>
 #include <exception>

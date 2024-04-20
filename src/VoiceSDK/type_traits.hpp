@@ -7,6 +7,7 @@
 #include <string>
 #include <valarray>
 #include <iterator>
+#include <Eigen/Dense>
 
 namespace VoiceSDK
 {
@@ -302,6 +303,27 @@ using enable_if_input_iterator_of_convertible_from
 template <class InputIt, class From, class Type = void>
 using enable_if_input_iterator_of_convertible_from_t
     = typename enable_if_input_iterator_of_convertible_from<InputIt, From, Type>::type;
+
+#pragma endregion
+
+template<typename T>
+struct is_eigen_data_type : std::false_type {};
+
+template<typename Scalar>
+struct is_eigen_data_type<Eigen::Matrix<Scalar, Eigen::Dynamic, 1>> : std::true_type {};
+
+template<typename T>
+inline constexpr bool is_eigen_data_type_v = is_eigen_data_type<T>::value;
+
+template<typename T, class Type = void>
+using enable_if_eigen_data_type = typename std::enable_if<is_eigen_data_type_v<T>, Type>;
+
+template<typename T, class Type = void>
+using enable_if_eigen_data_type_t = typename enable_if_eigen_data_type<T, Type>::type;
+
+#pragma region Eigen Type
+
+
 
 #pragma endregion
 
