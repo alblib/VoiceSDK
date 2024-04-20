@@ -69,7 +69,7 @@ inline constexpr bool is_input_iterator_v = is_input_iterator<Iter>::value;
 #pragma region enable_if_input_iterator
 
 template <typename Iter, typename Type = void>
-struct enable_if_input_iterator : std::enable_if<is_input_iterator_v<Iter>, Type> {};
+using enable_if_input_iterator = std::enable_if<is_input_iterator_v<Iter>, Type>;
 
 template <typename Iter, typename Type = void>
 using enable_if_input_iterator_t = typename enable_if_input_iterator<Iter, Type>::type;
@@ -172,20 +172,20 @@ inline constexpr bool is_iterator_of_convertible_from_v
 #pragma region enable_if_input_iterator_of
 
 template <typename InputIt, typename ValueType, typename Type = void>
-struct enable_if_input_iterator_of : std::enable_if<is_input_iterator_v<InputIt> && is_iterator_of_v<InputIt, ValueType>, Type> {};
+using enable_if_input_iterator_of = typename std::enable_if<is_input_iterator_v<InputIt> && is_iterator_of_v<InputIt, ValueType>, Type>;
 
 template <typename InputIt, typename ValueType, typename Type = void>
-using enable_if_input_iterator_of_t = typename enable_if_input_iterator_of<InputIt, Type>::type;
+using enable_if_input_iterator_of_t = typename enable_if_input_iterator_of<InputIt, ValueType, Type>::type;
 
 #pragma endregion
 
 #pragma region enable_if_input_iterator_of_ignore_cv
 
 template <typename InputIt, typename ValueType, typename Type = void>
-struct enable_if_input_iterator_of_ignore_cv : std::enable_if<is_input_iterator_v<InputIt> && is_iterator_of_ignore_cv_v<InputIt, ValueType>, Type> {};
+using enable_if_input_iterator_of_ignore_cv = typename std::enable_if<is_input_iterator_v<InputIt> && is_iterator_of_ignore_cv_v<InputIt, ValueType>, Type>;
 
 template <typename InputIt, typename ValueType, typename Type = void>
-using enable_if_input_iterator_of_ignore_cv_t = typename enable_if_input_iterator_of_ignore_cv<InputIt, Type>::type;
+using enable_if_input_iterator_of_ignore_cv_t = typename enable_if_input_iterator_of_ignore_cv<InputIt, ValueType, Type>::type;
 
 #pragma endregion
 

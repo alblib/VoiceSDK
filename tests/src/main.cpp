@@ -41,8 +41,8 @@ int test_RingBuffer() {
 
 
 template<class It>
-std::enable_if_t<VoiceSDK::is_input_iterator_v<It> && VoiceSDK::is_iterator_of_v<It, float>, bool>
-//VoiceSDK::enable_if_input_iterator_of_ignore_cv_t<It, float, bool>
+//std::enable_if_t<VoiceSDK::is_input_iterator_v<It> && VoiceSDK::is_iterator_of_v<It, float>, bool>
+VoiceSDK::enable_if_input_iterator_of_ignore_cv_t<It, float, bool>
 test(It a)
 {
     return true;
