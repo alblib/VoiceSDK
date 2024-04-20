@@ -104,14 +104,14 @@ public:
 	}
 
 	template <class InputIt>
-	typename std::enable_if<is_input_iterator_v<InputIt>>::type
+	enable_if_input_iterator_t<InputIt>
 		enqueue(InputIt begin, InputIt end)
 	{
 		enqueue(begin, std::distance(begin, end));
 	}
 
 	template <class InputIt>
-	typename std::enable_if<is_input_iterator_v<InputIt>>::type
+	enable_if_input_iterator_t<InputIt>
 		enqueue(InputIt begin, size_t size)
 	{
 #ifndef VoiceSDK_DISABLE_THREADS
