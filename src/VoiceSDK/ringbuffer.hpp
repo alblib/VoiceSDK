@@ -3,7 +3,6 @@
 
 #include "definitions.hpp"
 #include "type_traits.hpp"
-#include <type_traits>
 #include <algorithm>
 #include <memory>
 #include <vector>

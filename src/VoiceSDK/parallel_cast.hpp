@@ -2,10 +2,10 @@
 #define __H_VOICE_SDK_PARALLEL_CAST_HPP __TIMESTAMP__
 
 #include "definitions.hpp"
+#include "type_traits.hpp"
 
 #include <future>
 #include <vector>
-#include <type_traits>
 #include <Eigen/Dense>
 
 namespace VoiceSDK
