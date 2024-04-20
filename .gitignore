@@ -47,3 +47,4 @@ _deps
 
 # Test build folder
 /build
+/build-tests
