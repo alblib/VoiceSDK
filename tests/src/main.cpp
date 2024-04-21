@@ -103,5 +103,7 @@ int test_type_traits() {
 int main(){
     if (test_RingBuffer() != 0) return -1;
     if (test_type_traits() != 0) return -2;
+    std::cout << "Eigen type detection: " << !VoiceSDK::is_eigen_data_type_v<std::vector<float>> << std::endl;
+    std::cout << "Eigen type detection: " << VoiceSDK::is_eigen_data_type_v<float> << std::endl;
     return 0;
 }

@@ -67,7 +67,7 @@ typename std::enable_if<std::is_convertible<From, To>::value, std::array<To, N>>
 }
 
 template <class To, size_t N, class From>
-std::enable_if<std::is_convertible<From, To>::value, std::valarray<To>>::type
+typename std::enable_if<std::is_convertible<From, To>::value, std::valarray<To>>::type
     parallel_cast(const std::valarray<From>& from_array)
 {
     std::vector<std::future<To>> futures;
@@ -103,14 +103,14 @@ enable_if_input_iterator_of_convertible_to_t<InputIt, To, std::vector<To>>
 }
 
 template <class To, class From>
-std::enable_if<std::is_convertible<From, To>::value, std::vector<To>>::type
+typename std::enable_if<std::is_convertible<From, To>::value, std::vector<To>>::type
     parallel_cast(const std::vector<From>& from_array)
 {
     return parallel_cast<To>(from_array.cbegin(), from_array.cend());
 }
 
 template <class To, size_t N, class From>
-std::enable_if<std::is_convertible<From, To>::value, std::array<To, N>>::type
+typename std::enable_if<std::is_convertible<From, To>::value, std::array<To, N>>::type
     parallel_cast(const std::array<From, N>& from_array)
 {
     std::array<To, N> results;
@@ -121,7 +121,7 @@ std::enable_if<std::is_convertible<From, To>::value, std::array<To, N>>::type
 }
 
 template <class To, size_t N, class From>
-std::enable_if<std::is_convertible<From, To>::value, std::valarray<To>>::type
+typename std::enable_if<std::is_convertible<From, To>::value, std::valarray<To>>::type
     parallel_cast(const std::valarray<From>& from_array)
 {
     std::valarray<To> results(from_array.size());
@@ -137,7 +137,7 @@ std::enable_if<std::is_convertible<From, To>::value, std::valarray<To>>::type
 
 template<typename To, typename From>
 typename std::enable_if<is_eigen_data_type_v<To> && is_eigen_data_type_v<From>, std::vector<To>>::type
-    parallel_cast<To>(const std::vector<From>& from_array)
+    parallel_cast(const std::vector<From>& from_array)
 {
     auto from_array_ref
         = Eigen::Map<Eigen::Array<std::add_const<From>::type, Eigen::Dynamic, 1>>(from_array.data(), from_array.size());
