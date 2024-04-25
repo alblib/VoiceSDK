@@ -9,6 +9,7 @@ int test_RingBuffer() {
     VoiceSDK::RingBuffer<float, 128> rb;
     VoiceSDK::RingBuffer<float, 64> rb2(rb);
     VoiceSDK::RingBuffer<float, 256> rb3(rb);
+    Eigen::Matrix<float,3,1> a;
 
     std::vector<float> a = { 1,2,3 };
     rb.enqueue(a.begin(), a.end());
