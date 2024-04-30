@@ -14,7 +14,7 @@ class Polynomial
 private:
 public:
     using coefficient_type = Coefficient;
-    std::valarray<coefficient_Type> coefficients;
+    std::valarray<coefficient_type> coefficients;
 
     //Polynomial operator + (const Polynomial& other) const {
 
