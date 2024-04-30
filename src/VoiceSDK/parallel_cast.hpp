@@ -7,23 +7,65 @@
 #include <future>
 #include <vector>
 #include <Eigen/Dense>
+#include <valarray>
+#include <array>
+
+#include <cstdint>
+#include <type_traits>
+#include <Eigen/Geometry>
 
 namespace VoiceSDK
 {
 
-/*
-template <class To, class InputIt>
-using vector_To_if_input_iterator_value_type_convertible_to_To
-    = typename std::enable_if<
-        is_input_iterator_v<InputIt> 
-        && 
-    , std::vector<To>>::type;
 
-    */
+template<typename T, class = void>
+struct is_parallely_castable : std::false_type {};
+
+template<typename Scalar>
+struct is_parallely_castable<Scalar, typename std::enable_if<std::is_same<typename std::remove_cv<Scalar>::type, float>::value>::type> : std::true_type {};
+template<typename Scalar>
+struct is_parallely_castable<Scalar, typename std::enable_if<std::is_same<typename std::remove_cv<Scalar>::type, int>::value>::type> : std::true_type {};
+template<typename Scalar>
+struct is_parallely_castable<Scalar, typename std::enable_if<std::is_same<typename std::remove_cv<Scalar>::type, double>::value>::type> : std::true_type {};
+template<typename Scalar>
+struct is_parallely_castable<Scalar, typename std::enable_if<std::is_same<typename std::remove_cv<Scalar>::type, long double>::value>::type> : std::true_type {};
+template<typename Scalar>
+struct is_parallely_castable<Scalar, typename std::enable_if<std::is_same<typename std::remove_cv<Scalar>::type, std::complex<long double>>::value>::type> : std::true_type {};
+template<typename Scalar>
+struct is_parallely_castable<Scalar, typename std::enable_if<std::is_same<typename std::remove_cv<Scalar>::type, std::complex<double>>::value>::type> : std::true_type {};
+template<typename Scalar>
+struct is_parallely_castable<Scalar, typename std::enable_if<std::is_same<typename std::remove_cv<Scalar>::type, std::complex<float>>::value>::type> : std::true_type {};
+
+//template<typename Scalar>
+//struct is_parallely_castable<Scalar, typename std::enable_if<std::is_same<typename std::remove_cv<Scalar>::type, float>::value>::type> : std::true_type {};
+//template<typename Scalar>
+//struct is_parallely_castable<Scalar, typename std::enable_if<std::is_same<typename std::remove_cv<Scalar>::type, int>::value>::type> : std::true_type {};
+//template<typename Scalar>
+//struct is_parallely_castable<Scalar, typename std::enable_if<std::is_same<typename std::remove_cv<Scalar>::type, double>::value>::type> : std::true_type {};
+//template<typename Scalar>
+//struct is_parallely_castable<Scalar, typename std::enable_if<std::is_same<typename std::remove_cv<Scalar>::type, long double>::value>::type> : std::true_type {};
+//template<typename Scalar>
+//struct is_parallely_castable<Scalar, typename std::enable_if<std::is_same<typename std::remove_cv<Scalar>::type, std::complex<long double>>::value>::type> : std::true_type {};
+//template<typename Scalar>
+//struct is_parallely_castable<Scalar, typename std::enable_if<std::is_same<typename std::remove_cv<Scalar>::type, std::complex<double>>::value>::type> : std::true_type {};
+//template<typename Scalar>
+//struct is_parallely_castable<Scalar, typename std::enable_if<std::is_same<typename std::remove_cv<Scalar>::type, std::complex<float>>::value>::type> : std::true_type {};
+//template<typename Scalar, int QOptions_>
+//struct is_parallely_castable<Scalar, typename std::enable_if<std::is_same<typename std::remove_cv<Scalar>::type, Eigen::Quaternion<float, QOptions_>>::value>::type> : std::true_type {};
+//template<typename Scalar, int QOptions_>
+//struct is_parallely_castable<Scalar, typename std::enable_if<std::is_same<typename std::remove_cv<Scalar>::type, Eigen::Quaternion<double, QOptions_>>::value>::type> : std::true_type {};
+//template<typename Scalar, int QOptions_>
+//struct is_parallely_castable<Scalar, typename std::enable_if<std::is_same<typename std::remove_cv<Scalar>::type, Eigen::Quaternion<long double, QOptions_>>::value>::type> : std::true_type {};
+
+template<typename T>
+inline constexpr bool is_parallely_castable_v = is_parallely_castable<T>::value;
+
+#pragma region Generic array cast
 
 #ifndef VoiceSDK_DISABLE_THREADS
 template <class To, class InputIt>
-enable_if_input_iterator_t<InputIt, std::vector<To>> parallel_cast(InputIt from_begin, InputIt from_end)
+enable_if_input_iterator_of_convertible_to_t<InputIt, To, std::vector<To>>
+    parallel_cast(InputIt from_begin, InputIt from_end)
 {
     std::vector<std::future<To>> futures;
     futures.reserve(from_array.size());
@@ -43,9 +85,59 @@ enable_if_input_iterator_t<InputIt, std::vector<To>> parallel_cast(InputIt from_
     return results;
 }
 
+template <class To, class From>
+typename std::enable_if<std::is_convertible<From, To>::value, std::vector<To>>::type
+    parallel_cast(const std::vector<From>& from_array)
+{
+    return parallel_cast<To>(from_array.cbegin(), from_array.cend());
+}
+
+template <class To, size_t N, class From>
+typename std::enable_if<std::is_convertible<From, To>::value, std::array<To, N>>::type
+    parallel_cast(const std::array<From, N>& from_array)
+{
+    std::vector<std::future<To>> futures;
+    futures.reserve(from_array.size());
+    for (const From& from: from_array)
+    {
+        futures.push_back(std::async(std::launch:async, [&from]() {
+            return static_cast<To>(from);
+        }));
+    }
+
+    // Wait for all tasks to finish and collect results
+    std::array<To, N> results;
+    for (size_t i = 0; i < N; ++i)
+        results[i] = futures[i].get();
+
+    return results;
+}
+
+template <class To, size_t N, class From>
+typename std::enable_if<std::is_convertible<From, To>::value, std::valarray<To>>::type
+    parallel_cast(const std::valarray<From>& from_array)
+{
+    std::vector<std::future<To>> futures;
+    futures.reserve(from_array.size());
+    for (const From& from: from_array)
+    {
+        futures.push_back(std::async(std::launch:async, [&from]() {
+            return static_cast<To>(from);
+        }));
+    }
+
+    // Wait for all tasks to finish and collect results
+    std::valarray<To> results(from_array.size());
+    for (size_t i = 0; i < N; ++i)
+        results[i] = futures[i].get();
+
+    return results;
+}
+
 #else
 template <class To, class InputIt>
-enable_if_input_iterator_t<InputIt, std::vector<To>> parallel_cast(InputIt from_begin, InputIt from_end)
+enable_if_input_iterator_of_convertible_to_t<InputIt, To, std::vector<To>>
+    parallel_cast(InputIt from_begin, InputIt from_end)
 {
     std::vector<To> results;
     results.reserve(from_array.size());
@@ -56,13 +148,50 @@ enable_if_input_iterator_t<InputIt, std::vector<To>> parallel_cast(InputIt from_
 
     return results;
 }
-#endif
 
 template <class To, class From>
-std::enable_if<std::is_convertible<From, To>::value, std::vector<To>> parallel_cast(const std::vector<From>& from_array)
+typename std::enable_if<std::is_convertible<From, To>::value, std::vector<To>>::type
+    parallel_cast(const std::vector<From>& from_array)
 {
-    
+    return parallel_cast<To>(from_array.cbegin(), from_array.cend());
 }
+
+template <class To, size_t N, class From>
+typename std::enable_if<std::is_convertible<From, To>::value, std::array<To, N>>::type
+    parallel_cast(const std::array<From, N>& from_array)
+{
+    std::array<To, N> results;
+    for (size_t i = 0; i < N; ++i)
+        results[i] = static_cast<To>(from_array[i]);
+
+    return results;
+}
+
+template <class To, size_t N, class From>
+typename std::enable_if<std::is_convertible<From, To>::value, std::valarray<To>>::type
+    parallel_cast(const std::valarray<From>& from_array)
+{
+    std::valarray<To> results(from_array.size());
+    for (size_t i = 0; i < N; ++i)
+        results[i] = static_cast<To>(from_array[i]);
+
+    return results;
+}
+
+#endif
+
+#pragma endregion
+
+template<typename To, typename From>
+typename std::enable_if<is_parallely_castable_v<To> && is_parallely_castable_v<From>, std::vector<To>>::type
+    parallel_cast(const std::vector<From>& from_array)
+{
+    auto from_array_ref
+        = Eigen::Map<Eigen::Array<std::add_const<From>::type, Eigen::Dynamic, 1>>(from_array.data(), from_array.size());
+    Eigen::Array<To, Eigen::Dynamic, 1> to_array = from_array_ref.cast<To>();
+    return std::vector<To>(to_array.data(), to_array.data() + from_array.size());
+}
+
 
 
 } // namespace VoiceSDK

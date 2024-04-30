@@ -1,6 +1,7 @@
 #include <VoiceSDK/ringbuffer.hpp>
 #include <VoiceSDK/polynomial.hpp>
 #include <VoiceSDK/type_traits.hpp>
+#include <VoiceSDK/parallel_cast.hpp>
 #include <stdexcept>
 #include <iostream>
 #include <exception>
@@ -9,6 +10,7 @@ int test_RingBuffer() {
     VoiceSDK::RingBuffer<float, 128> rb;
     VoiceSDK::RingBuffer<float, 64> rb2(rb);
     VoiceSDK::RingBuffer<float, 256> rb3(rb);
+    //Eigen::Matrix<float,3,1> a;
 
     std::vector<float> a = { 1,2,3 };
     rb.enqueue(a.begin(), a.end());
@@ -103,5 +105,9 @@ int test_type_traits() {
 int main(){
     if (test_RingBuffer() != 0) return -1;
     if (test_type_traits() != 0) return -2;
+    std::cout << "Eigen type detection: " << !VoiceSDK::is_parallely_castable_v<std::vector<float>> << std::endl;
+    std::cout << "Eigen type detection: " << VoiceSDK::is_parallely_castable_v<float> << std::endl;
+    std::cout << "Eigen type detection: " << VoiceSDK::is_parallely_castable_v<const float> << std::endl;
+    std::cout << "Eigen type detection: " << VoiceSDK::is_parallely_castable_v<std::string> << std::endl;
     return 0;
 }

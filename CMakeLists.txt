@@ -3,6 +3,9 @@ cmake_policy(SET CMP0077 NEW)
 cmake_policy(SET CMP0091 NEW)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON) #Required to Windows dll have the symbol for entry points
 
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
+
 project(VoiceSDK)
 
 # option(VoiceSDK_SHARED_LIB "Build VoiceSDK shared library" OFF)
@@ -16,9 +19,6 @@ option(VoiceSDK_TESTS "Tests VoiceSDK" ON)
 if ((MSVC) AND (MSVC_VERSION GREATER_EQUAL 1914))
     add_compile_options("/Zc:__cplusplus")
 endif()
-
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_CXX_STANDARD 17)
 
 include(cmake/FindEigen.cmake)
 
