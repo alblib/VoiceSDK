@@ -35,12 +35,30 @@ template<typename Scalar>
 struct is_parallely_castable<Scalar, typename std::enable_if<std::is_same<typename std::remove_cv<Scalar>::type, std::complex<double>>::value>::type> : std::true_type {};
 template<typename Scalar>
 struct is_parallely_castable<Scalar, typename std::enable_if<std::is_same<typename std::remove_cv<Scalar>::type, std::complex<float>>::value>::type> : std::true_type {};
-template<typename Scalar, int QOptions_>
-struct is_parallely_castable<Scalar, typename std::enable_if<std::is_same<typename std::remove_cv<Scalar>::type, Eigen::Quaternion<float, QOptions_>>::value>::type> : std::true_type {};
-template<typename Scalar, int QOptions_>
-struct is_parallely_castable<Scalar, typename std::enable_if<std::is_same<typename std::remove_cv<Scalar>::type, Eigen::Quaternion<double, QOptions_>>::value>::type> : std::true_type {};
-template<typename Scalar, int QOptions_>
-struct is_parallely_castable<Scalar, typename std::enable_if<std::is_same<typename std::remove_cv<Scalar>::type, Eigen::Quaternion<long double, QOptions_>>::value>::type> : std::true_type {};
+
+//template<typename Scalar>
+//struct is_parallely_castable<Scalar, typename std::enable_if<std::is_same<typename std::remove_cv<Scalar>::type, float>::value>::type> : std::true_type {};
+//template<typename Scalar>
+//struct is_parallely_castable<Scalar, typename std::enable_if<std::is_same<typename std::remove_cv<Scalar>::type, int>::value>::type> : std::true_type {};
+//template<typename Scalar>
+//struct is_parallely_castable<Scalar, typename std::enable_if<std::is_same<typename std::remove_cv<Scalar>::type, double>::value>::type> : std::true_type {};
+//template<typename Scalar>
+//struct is_parallely_castable<Scalar, typename std::enable_if<std::is_same<typename std::remove_cv<Scalar>::type, long double>::value>::type> : std::true_type {};
+//template<typename Scalar>
+//struct is_parallely_castable<Scalar, typename std::enable_if<std::is_same<typename std::remove_cv<Scalar>::type, std::complex<long double>>::value>::type> : std::true_type {};
+//template<typename Scalar>
+//struct is_parallely_castable<Scalar, typename std::enable_if<std::is_same<typename std::remove_cv<Scalar>::type, std::complex<double>>::value>::type> : std::true_type {};
+//template<typename Scalar>
+//struct is_parallely_castable<Scalar, typename std::enable_if<std::is_same<typename std::remove_cv<Scalar>::type, std::complex<float>>::value>::type> : std::true_type {};
+//template<typename Scalar, int QOptions_>
+//struct is_parallely_castable<Scalar, typename std::enable_if<std::is_same<typename std::remove_cv<Scalar>::type, Eigen::Quaternion<float, QOptions_>>::value>::type> : std::true_type {};
+//template<typename Scalar, int QOptions_>
+//struct is_parallely_castable<Scalar, typename std::enable_if<std::is_same<typename std::remove_cv<Scalar>::type, Eigen::Quaternion<double, QOptions_>>::value>::type> : std::true_type {};
+//template<typename Scalar, int QOptions_>
+//struct is_parallely_castable<Scalar, typename std::enable_if<std::is_same<typename std::remove_cv<Scalar>::type, Eigen::Quaternion<long double, QOptions_>>::value>::type> : std::true_type {};
+
+template<typename T>
+inline constexpr bool is_parallely_castable_v = is_parallely_castable<T>::value;
 
 #pragma region Generic array cast
 
@@ -165,7 +183,7 @@ typename std::enable_if<std::is_convertible<From, To>::value, std::valarray<To>>
 #pragma endregion
 
 template<typename To, typename From>
-typename std::enable_if<is_eigen_data_type_v<To> && is_eigen_data_type_v<From>, std::vector<To>>::type
+typename std::enable_if<is_parallely_castable_v<To> && is_parallely_castable_v<From>, std::vector<To>>::type
     parallel_cast(const std::vector<From>& from_array)
 {
     auto from_array_ref
